@@ -1,0 +1,7 @@
+**/work/
+**/db/
+**/incremental_db/
+**/output_files/
+**/simulation/
+**/*.wlf
+**/*.bak
