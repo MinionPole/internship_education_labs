@@ -1,17 +1,17 @@
 vlib work
 
 vlog -sv ../rtl/serializator.sv
-vlog -sv serilializator_tb1.sv
+vlog -sv testbench_2.sv
 
-vsim -novopt serilializator_tb1
+vsim -novopt testbench_2
 
 add log -r /*
-add wave /serilializator_tb1/clk
-add wave /serilializator_tb1/reset
-add wave /serilializator_tb1/data_i
-add wave /serilializator_tb1/data_mod_i
-add wave /serilializator_tb1/data_valid
-add wave /serilializator_tb1/ser_data_o
-add wave /serilializator_tb1/ser_data_val_o
-add wave /serilializator_tb1/busy_ota_o
+add wave /testbench_2/clk
+add wave /testbench_2/reset
+add wave /testbench_2/data_i
+add wave /testbench_2/data_mod_i
+add wave /testbench_2/data_valid
+add wave /testbench_2/ser_data_o
+add wave /testbench_2/ser_data_val_o
+add wave /testbench_2/busy_ota_o
 run -all
