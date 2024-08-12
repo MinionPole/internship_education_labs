@@ -75,19 +75,19 @@ module testbench_2;
           @(posedge clk)
           if(ser_data_o != data_i[15-i])
           begin
-              $display("error, wrong data out on first cycle in %d el, need = %b, get = %b", i, data_i[15-i], ser_data_val_o);
+              $error("error, wrong data out on first cycle in %d el, need = %b, get = %b", i, data_i[15-i], ser_data_val_o);
               res_flag_t <= 1'b1;
           end
           
           if(busy_ota_o != 1)
           begin
-              $display("error, must be busy on first cycle in %d el", i);
+              $error("error, must be busy on first cycle in %d el", i);
               res_flag_t <= 1'b1;
           end
           
           if(ser_data_val_o != 1)
           begin
-              $display("error, must be correct data_flag on first cycle in %d el", i);
+              $error("error, must be correct data_flag on first cycle in %d el", i);
               res_flag_t <= 1'b1;
           end
       end     
@@ -116,7 +116,7 @@ module testbench_2;
        
        if(busy_ota_o == 1)
          begin
-           $display("error, mustn't be busy ");
+           $error("error, mustn't be busy ");
            res_flag_t <= 1'b1;
          end
          
@@ -140,7 +140,7 @@ module testbench_2;
      $display("first data test start");
      correct_data_check(1'b0, 16'b1011000000000000, 4'd6, 1'b1, task_res_flag);
      if( task_res_flag )
-        $display("first data test wrong");
+        $error("first data test wrong");
      else
         $display("first data test ok");
      
@@ -151,7 +151,7 @@ module testbench_2;
      $display("second data test start");
      correct_data_check(1'b0, 16'b1011000000000101, 4'd0, 1'b1, task_res_flag);
      if( task_res_flag )
-        $display("second data test wrong");
+        $error("second data test wrong");
      else
         $display("second data test ok");
         
@@ -161,7 +161,7 @@ module testbench_2;
      $display("first wrong input test start");
      wrong_data_check_task(1'b0, 16'b1011000000000101, 4'd1, 1'b1, task_res_flag);
      if( task_res_flag )
-        $display("first wrong input test wrong");
+        $error("first wrong input test wrong");
      else
         $display("first wrong input test ok");
         
@@ -170,9 +170,9 @@ module testbench_2;
      $display("second wrong input test start");
      wrong_data_check_task(1'b0, 16'b1011000000000101, 4'd2, 1'b1, task_res_flag);
      if( task_res_flag )
-        $display("second wrong input test wrong");
+        $error("second wrong input test wrong");
      else
-        $display("second wrong input test ok");         
+        $display("second wrong input test ok");
       
     end
   

@@ -44,7 +44,5 @@ module serializator_top(
       .ser_data_o(ser_data_o),
       .ser_data_val_o(ser_data_val_o),
       .busy_o(busy_o)
-   );	 
-	 
-    
+   );	
 endmodule
