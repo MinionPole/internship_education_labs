@@ -93,7 +93,7 @@ module testbench_2#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100);
     begin
       insert_data(reset_t, data_i_t, data_mod_i_t, data_val_i_t);
       res_flag_t    <= 1'b0;
-      while( !ser_data_val_o && timeout_counter <= MAX_WORK_TIMEOUT )
+      while( !ser_data_val_o && timeout_counter < MAX_WORK_TIMEOUT )
         begin
          @(posedge clk)
          timeout_counter <= timeout_counter + 1;
@@ -140,7 +140,7 @@ module testbench_2#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100);
       insert_data(reset_t, data_i_t, data_mod_i_t, data_val_i_t);
       res_flag_t    <= 1'b0;
 
-      while( !busy_ota_o && timeout_counter <= MAX_WORK_TIMEOUT )
+      while( !busy_ota_o && timeout_counter < MAX_WORK_TIMEOUT )
         begin
           @(posedge clk)
           timeout_counter <= timeout_counter + 1;
@@ -155,6 +155,42 @@ module testbench_2#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100);
       data_valid <= 1'b0;
     end
   endtask
+
+  
+  task reset_check_task(
+  input reset_t,
+  input         [15:0] data_i_t,
+  input         [3:0]  data_mod_i_t,
+  input                data_val_i_t,
+  
+  output  logic        res_flag_t
+  );
+    begin    
+      insert_data(reset_t, data_i_t, data_mod_i_t, data_val_i_t);
+      res_flag_t    <= 1'b0;
+
+      while( !busy_ota_o && timeout_counter < MAX_WORK_TIMEOUT )
+        begin
+          @(posedge clk)
+          timeout_counter <= timeout_counter + 1;
+        end
+      data_valid <= 1'b0; 
+      if(busy_ota_o == 1)
+        begin
+          reset_t <= 1;
+          timeout_counter <= 0;
+        end
+
+      while( busy_ota_o && timeout_counter < MAX_WORK_TIMEOUT )
+        begin
+          @(posedge clk)
+          timeout_counter <= timeout_counter + 1;
+        end
+      
+      if(timeout_counter == MAX_WORK_TIMEOUT)
+        res_flag_t <= 1'b1;  
+    end
+  endtask 
 
       
   initial 
@@ -175,10 +211,9 @@ module testbench_2#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100);
         $error("first data test wrong");
      else
         $display("first data test ok");
-     
-     
 
-
+        
+     cooldown_wait();
      $display("second data test start");
      correct_data_check(1'b0, 16'b1011000000000101, 4'd0, 1'b1, task_res_flag);
      if( task_res_flag )
@@ -186,29 +221,32 @@ module testbench_2#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100);
      else
         $display("second data test ok");
         
-    while( busy_ota_o)
-      begin
-        @(posedge clk)
-        timeout_counter <= timeout_counter + 1;
-      end
+     cooldown_wait();
      $display("first wrong input test start");
      wrong_data_check_task(1'b0, 16'b1011000000000101, 4'd1, 1'b1, task_res_flag);
      if( task_res_flag )
         $error("first wrong input test wrong");
      else
         $display("first wrong input test ok");
+
         
-    while( busy_ota_o)
-      begin
-        @(posedge clk)
-        timeout_counter <= timeout_counter + 1;
-      end
+     cooldown_wait();
      $display("second wrong input test start");
      wrong_data_check_task(1'b0, 16'b1011000000000101, 4'd2, 1'b1, task_res_flag);
      if( task_res_flag )
         $error("second wrong input test wrong");
      else
         $display("second wrong input test ok");
+
+
+     cooldown_wait();
+     $display("reset test");
+     reset_check_task(1'b0, 16'b1011000000000101, 4'd2, 1'b1, task_res_flag);
+     if( task_res_flag )
+        $error("reset test wrong");
+     else
+        $display("reset test ok");
+
       
     end
   
