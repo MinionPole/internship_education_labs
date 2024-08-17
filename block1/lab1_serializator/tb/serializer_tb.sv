@@ -37,7 +37,7 @@ module serializer_tb#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100
 
   int timeout_counter;
 
-  mailbox mbx           = new(1);
+  mailbox mbx = new(1);
 
   serializer ser_obj(
       .clk_i(clk),
