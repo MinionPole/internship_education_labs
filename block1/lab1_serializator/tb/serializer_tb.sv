@@ -152,6 +152,22 @@ module serializer_tb#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100
     end
   endtask
 
+  task data_wait(
+  input int wait_num
+  );
+    begin
+      int local_value;
+      local_value <= 0;
+      while(local_value != wait_num)
+        begin
+          @(posedge clk);
+          mbx.try_peek(local_value);
+          //$display("wait %d, loc_val is %d", wait_num, local_value);
+        end
+      mbx.get(local_value);
+    end
+  endtask
+Ы
 
   task reset_check_task(
   input reset_t,
@@ -199,72 +215,40 @@ module serializer_tb#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100
      reset <= 0;
      fork
         begin
-          int first_thread_param = 0;
           $display("first data test start");
           insert_data(1'b0, 16'b1011000000000000, 4'd6, 1'b1);
           mbx.put(1);
-          while(first_thread_param != -1)
-          begin
-            @(posedge clk);
-            mbx.try_peek(first_thread_param);
-          end
-          mbx.get(first_thread_param);
+          data_wait(-1);
 
           cooldown_wait();
           $display("second data test start");
           insert_data(1'b0, 16'b1011000000000101, 4'd0, 1'b1);
           mbx.put(2);
-          while(first_thread_param != -2)
-          begin
-            @(posedge clk);
-            mbx.try_peek(first_thread_param);
-          end
-          mbx.get(first_thread_param);
+          data_wait(-2);
 
           cooldown_wait();
           $display("first wrong input test start");
           insert_data(1'b0, 16'b1011000000000101, 4'd1, 1'b1);
           mbx.put(3);
-          while(first_thread_param != -3)
-          begin
-            @(posedge clk);
-            mbx.try_peek(first_thread_param);
-          end
-          mbx.get(first_thread_param);
+          data_wait(-3);
 
           cooldown_wait();
           $display("second wrong input test start");
           insert_data(1'b0, 16'b1011000000000101, 4'd2, 1'b1);
           mbx.put(4);
-          while(first_thread_param != -4)
-          begin
-            @(posedge clk);
-            mbx.try_peek(first_thread_param);
-          end
-          mbx.get(first_thread_param);
+          data_wait(-4);
 
           cooldown_wait();
           $display("reset test start");
           insert_data(1'b0, 16'b1011000000000101, 4'd2, 1'b1);
           mbx.put(5);
-          while(first_thread_param != -5)
-          begin
-            @(posedge clk);
-            mbx.try_peek(first_thread_param);
-          end
-          mbx.get(first_thread_param);
+          data_wait(-5);
         end
 
         begin
-          int second_thread_param = 0;
           logic task_res_flag;
           //d1
-          while(second_thread_param != 1)
-            begin
-              @(posedge clk);
-              mbx.try_peek(second_thread_param);
-            end
-          mbx.get(second_thread_param);
+          data_wait(1);
           correct_data_check(1'b0, 16'b1011000000000000, 4'd6, 1'b1, task_res_flag);
           if( task_res_flag )
             $error("first data test wrong");
@@ -273,12 +257,8 @@ module serializer_tb#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100
           mbx.put(-1);
 
           //d2
-          while(second_thread_param != 2)
-            begin
-              @(posedge clk);
-              mbx.try_peek(second_thread_param);
-            end
-          mbx.get(second_thread_param);
+          $display("second test wait");
+          data_wait(2);
           correct_data_check(1'b0, 16'b1011000000000101, 4'd0, 1'b1, task_res_flag);
           if( task_res_flag )
             $error("second data test wrong");
@@ -287,12 +267,7 @@ module serializer_tb#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100
           mbx.put(-2);
 
           //w1
-          while(second_thread_param != 3)
-            begin
-              @(posedge clk);
-              mbx.try_peek(second_thread_param);
-            end
-          mbx.get(second_thread_param);
+          data_wait(3);
           wrong_data_check_task(1'b0, 16'b1011000000000101, 4'd1, 1'b1, task_res_flag);
           if( task_res_flag )
             $error("first wrong input test wrong");
@@ -301,12 +276,7 @@ module serializer_tb#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100
           mbx.put(-3);
 
           //w2
-          while(second_thread_param != 4)
-            begin
-              @(posedge clk);
-              mbx.try_peek(second_thread_param);
-            end
-          mbx.get(second_thread_param);
+          data_wait(4);
           wrong_data_check_task(1'b0, 16'b1011000000000101, 4'd1, 1'b1, task_res_flag);
           if( task_res_flag )
             $error("second wrong input test wrong");
@@ -315,12 +285,7 @@ module serializer_tb#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100
           mbx.put(-4);
 
           //r1
-          while(second_thread_param != 5)
-            begin
-              @(posedge clk);
-              mbx.try_peek(second_thread_param);
-            end
-          mbx.get(second_thread_param);
+          data_wait(5);
           reset_check_task(1'b0, 16'b1011000000000101, 4'd2, 1'b1, task_res_flag);
           if( task_res_flag )
             $error("reset test wrong");

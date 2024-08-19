@@ -21,16 +21,16 @@
 
 
 module serializer_top(
-    input logic          clk_150mhz,
-    input logic          srst_i,
+    input          clk_150mhz,
+    input          srst_i,
 
-    input logic  [15:0]  data_i,
-    input logic  [3:0]   data_mod_i,
-    input logic          data_val_i,
+    input  [15:0]  data_i,
+    input  [3:0]   data_mod_i,
+    input          data_val_i,
 
-    output logic         ser_data_o,
-    output logic         ser_data_val_o,
-    output logic         busy_o
+    output         ser_data_o,
+    output         ser_data_val_o,
+    output         busy_o
 );
 
   serializer ser_obj(
