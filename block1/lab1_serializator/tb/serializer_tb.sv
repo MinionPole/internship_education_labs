@@ -167,7 +167,6 @@ module serializer_tb#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100
       mbx.get(local_value);
     end
   endtask
-Ы
 
   task reset_check_task(
   input reset_t,
