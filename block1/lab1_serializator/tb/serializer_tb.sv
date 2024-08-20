@@ -37,7 +37,8 @@ module serializer_tb#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100
 
   int timeout_counter;
 
-  mailbox mbx = new(1);
+  mailbox mbx1 = new(1);
+  mailbox mbx2 = new(1);
 
   serializer ser_obj(
       .clk_i(clk),
@@ -153,7 +154,8 @@ module serializer_tb#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100
   endtask
 
   task data_wait(
-  input int wait_num
+  input int wait_num,
+  input mailbox mbx
   );
     begin
       int local_value;
@@ -162,7 +164,7 @@ module serializer_tb#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100
         begin
           @(posedge clk);
           mbx.try_peek(local_value);
-          //$display("wait %d, loc_val is %d", wait_num, local_value);
+          $display("wait %d, loc_val is %d", wait_num, local_value);
         end
       mbx.get(local_value);
     end
@@ -216,81 +218,81 @@ module serializer_tb#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100
         begin
           $display("first data test start");
           insert_data(1'b0, 16'b1011000000000000, 4'd6, 1'b1);
-          mbx.put(1);
-          data_wait(-1);
+          mbx1.put(1);
+          data_wait(-1, mbx2);
 
           cooldown_wait();
           $display("second data test start");
           insert_data(1'b0, 16'b1011000000000101, 4'd0, 1'b1);
-          mbx.put(2);
-          data_wait(-2);
+          mbx1.put(2);
+          data_wait(-2, mbx2);
 
           cooldown_wait();
           $display("first wrong input test start");
           insert_data(1'b0, 16'b1011000000000101, 4'd1, 1'b1);
-          mbx.put(3);
-          data_wait(-3);
+          mbx1.put(3);
+          data_wait(-3, mbx2);
 
           cooldown_wait();
           $display("second wrong input test start");
           insert_data(1'b0, 16'b1011000000000101, 4'd2, 1'b1);
-          mbx.put(4);
-          data_wait(-4);
+          mbx1.put(4);
+          data_wait(-4, mbx2);
 
           cooldown_wait();
           $display("reset test start");
           insert_data(1'b0, 16'b1011000000000101, 4'd2, 1'b1);
-          mbx.put(5);
-          data_wait(-5);
+          mbx1.put(5);
+          data_wait(-5, mbx2);
         end
 
         begin
           logic task_res_flag;
           //d1
-          data_wait(1);
+          data_wait(1, mbx1);
           correct_data_check(1'b0, 16'b1011000000000000, 4'd6, 1'b1, task_res_flag);
           if( task_res_flag )
             $error("first data test wrong");
           else
             $display("first data test ok");
-          mbx.put(-1);
+          mbx2.put(-1);
 
           //d2
           $display("second test wait");
-          data_wait(2);
+          data_wait(2, mbx1);
           correct_data_check(1'b0, 16'b1011000000000101, 4'd0, 1'b1, task_res_flag);
           if( task_res_flag )
             $error("second data test wrong");
           else
             $display("second data test ok"); 
-          mbx.put(-2);
+          mbx2.put(-2);
 
           //w1
-          data_wait(3);
+          data_wait(3, mbx1);
           wrong_data_check_task(1'b0, 16'b1011000000000101, 4'd1, 1'b1, task_res_flag);
           if( task_res_flag )
             $error("first wrong input test wrong");
           else
             $display("first wrong input test ok");
-          mbx.put(-3);
+          mbx2.put(-3);
 
           //w2
-          data_wait(4);
+          data_wait(4, mbx1);
           wrong_data_check_task(1'b0, 16'b1011000000000101, 4'd1, 1'b1, task_res_flag);
           if( task_res_flag )
             $error("second wrong input test wrong");
           else
             $display("second wrong input test ok");
-          mbx.put(-4);
+          mbx2.put(-4);
 
           //r1
-          data_wait(5);
+          data_wait(5, mbx1);
           reset_check_task(1'b0, 16'b1011000000000101, 4'd2, 1'b1, task_res_flag);
           if( task_res_flag )
             $error("reset test wrong");
           else
             $display("reset test ok");
-          mbx.put(-5);
+          mbx2.put(-5);
 
         end
       join
