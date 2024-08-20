@@ -217,7 +217,7 @@ module serializer_tb#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100
         end
 
       if(timeout_counter == MAX_WORK_TIMEOUT)
-        res_flag_t <= 1'b1;  
+        res_flag_t <= 1'b1;
     end
   endtask 
 
@@ -275,13 +275,12 @@ module serializer_tb#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100
           mbx2.put(-1);
 
           //d2
-          $display("second test wait");
           data_wait_second_thread(2, mbx1);
           correct_data_check(1'b0, 16'b1011000000000101, 4'd0, 1'b1, task_res_flag);
           if( task_res_flag )
             $error("second data test wrong");
           else
-            $display("second data test ok"); 
+            $display("second data test ok");
           mbx2.put(-2);
 
           //w1
