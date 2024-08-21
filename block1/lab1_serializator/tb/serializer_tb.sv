@@ -33,7 +33,7 @@ module serializer_tb#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100
   logic ser_data_val_o; 
   logic busy_ota_o; 
 
-  logic how_many_data;
+  logic[3:0] how_many_data;
 
   int timeout_counter;
 
@@ -98,30 +98,29 @@ module serializer_tb#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100
          @(posedge clk)
          timeout_counter <= timeout_counter + 1;
         end
-
+      data_valid <= 1'b0;
       for(int i = 0;i < how_many_data;i = i + 1)
         begin
-          @(posedge clk)
-          if(ser_data_o != data_i[15-i])
+
+          if(! ( ser_data_o === data_i[15-i] ) )
             begin
-              $error("error, wrong data out on first cycle in %d el, need = %b, get = %b", i, data_i[15-i], ser_data_val_o);
+              $error("error, wrong data out on first cycle in %d el, need = %b, get = %b", i, data_i[15-i], ser_data_o);
               res_flag_t <= 1'b1;
             end
 
-          if(busy_ota_o != 1)
+          if( !( busy_ota_o === 1 ) )
             begin
               $error("error, must be busy on first cycle in %d el", i);
               res_flag_t <= 1'b1;
             end
 
-          if(ser_data_val_o != 1)
+          if( !(ser_data_val_o === 1) )
             begin
               $error("error, must be correct data_flag on first cycle in %d el", i);
               res_flag_t <= 1'b1;
             end
-
+          @(posedge clk);
         end
-      data_valid <= 1'b0;
     end
   endtask
   
@@ -143,7 +142,7 @@ module serializer_tb#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100
           timeout_counter <= timeout_counter + 1;
         end
 
-      if(busy_ota_o == 1)
+      if(busy_ota_o === 1)
         begin
           $error("error, mustn't be busy ");
           res_flag_t <= 1'b1;
@@ -204,7 +203,7 @@ module serializer_tb#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100
           timeout_counter <= timeout_counter + 1;
         end
       data_valid <= 1'b0; 
-      if(busy_ota_o == 1)
+      if(busy_ota_o === 1)
         begin
           reset_t <= 1;
           timeout_counter <= 0;
@@ -241,26 +240,50 @@ module serializer_tb#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100
           cooldown_wait();
           $display("second data test start");
           insert_data(1'b0, 16'b1011000000000101, 4'd0, 1'b1);
-          mbx1.put(2);
-          data_wait_first_thread(-2, mbx2);
+          mbx1.put(1);
+          data_wait_first_thread(-1, mbx2);
+
+          cooldown_wait();
+          $display("third data test start");
+          insert_data(1'b0, 16'b0000000001100101, 4'd15, 1'b1);
+          mbx1.put(1);
+          data_wait_first_thread(-1, mbx2);
+
+          cooldown_wait();
+          $display("forth data test start");
+          insert_data(1'b0, 16'b0000000000000000, 4'd8, 1'b1);
+          mbx1.put(1);
+          data_wait_first_thread(-1, mbx2);
+
+          cooldown_wait();
+          $display("fifth data test start");
+          insert_data(1'b0, 16'b1111111111111111, 4'd3, 1'b1);
+          mbx1.put(1);
+          data_wait_first_thread(-1, mbx2);
+
+          cooldown_wait();
+          $display("sixth data test start");
+          insert_data(1'b0, 16'b0101100000110000, 4'd13, 1'b1);
+          mbx1.put(1);
+          data_wait_first_thread(-1, mbx2);
 
           cooldown_wait();
           $display("first wrong input test start");
           insert_data(1'b0, 16'b1011000000000101, 4'd1, 1'b1);
-          mbx1.put(3);
-          data_wait_first_thread(-3, mbx2);
+          mbx1.put(1);
+          data_wait_first_thread(-1, mbx2);
 
           cooldown_wait();
           $display("second wrong input test start");
           insert_data(1'b0, 16'b1011000000000101, 4'd2, 1'b1);
-          mbx1.put(4);
-          data_wait_first_thread(-4, mbx2);
+          mbx1.put(1);
+          data_wait_first_thread(-1, mbx2);
 
           cooldown_wait();
           $display("reset test start");
           insert_data(1'b0, 16'b1011000000000101, 4'd2, 1'b1);
-          mbx1.put(5);
-          data_wait_first_thread(-5, mbx2);
+          mbx1.put(1);
+          data_wait_first_thread(-1, mbx2);
         end
 
         begin
@@ -269,46 +292,109 @@ module serializer_tb#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100
           data_wait_second_thread(1, mbx1);
           correct_data_check(1'b0, 16'b1011000000000000, 4'd6, 1'b1, task_res_flag);
           if( task_res_flag )
-            $error("first data test wrong");
+            begin
+              $error("first data test wrong");
+              $stop;
+            end
           else
             $display("first data test ok");
           mbx2.put(-1);
 
           //d2
-          data_wait_second_thread(2, mbx1);
+          data_wait_second_thread(1, mbx1);
           correct_data_check(1'b0, 16'b1011000000000101, 4'd0, 1'b1, task_res_flag);
           if( task_res_flag )
-            $error("second data test wrong");
+            begin
+              $error("second data test wrong");
+              $stop;
+            end
           else
             $display("second data test ok");
-          mbx2.put(-2);
+          mbx2.put(-1);
+
+          //d3
+          data_wait_second_thread(1, mbx1);
+          correct_data_check(1'b0, 16'b0000000001100101, 4'd15, 1'b1, task_res_flag);
+          if( task_res_flag )
+            begin
+              $error("third data test wrong");
+              $stop;
+            end
+          else
+            $display("third data test ok");
+          mbx2.put(-1);
+
+          //d4
+          data_wait_second_thread(1, mbx1);
+          correct_data_check(1'b0, 16'b0000000000000000, 4'd8, 1'b1, task_res_flag);
+          if( task_res_flag )
+            begin
+              $error("forth data test wrong");
+              $stop;
+            end
+          else
+            $display("forth data test ok");
+          mbx2.put(-1);
+
+          //d5
+          data_wait_second_thread(1, mbx1);
+          correct_data_check(1'b0, 16'b1111111111111111, 4'd3, 1'b1, task_res_flag);
+          if( task_res_flag )
+            begin
+              $error("fifth data test wrong");
+              $stop;
+            end
+          else
+            $display("fifth data test ok");
+          mbx2.put(-1);
+
+          //d6
+          data_wait_second_thread(1, mbx1);
+          correct_data_check(1'b0, 16'b0101100000110000, 4'd13, 1'b1, task_res_flag);
+          if( task_res_flag )
+            begin
+              $error("sixth data test wrong");
+              $stop;
+            end
+          else
+            $display("sixth data test ok");
+          mbx2.put(-1);
 
           //w1
-          data_wait_second_thread(3, mbx1);
+          data_wait_second_thread(1, mbx1);
           wrong_data_check_task(1'b0, 16'b1011000000000101, 4'd1, 1'b1, task_res_flag);
           if( task_res_flag )
-            $error("first wrong input test wrong");
+            begin
+              $error("first wrong input test wrong");
+              $stop;
+            end
           else
             $display("first wrong input test ok");
-          mbx2.put(-3);
+          mbx2.put(-1);
 
           //w2
-          data_wait_second_thread(4, mbx1);
+          data_wait_second_thread(1, mbx1);
           wrong_data_check_task(1'b0, 16'b1011000000000101, 4'd1, 1'b1, task_res_flag);
           if( task_res_flag )
-            $error("second wrong input test wrong");
+            begin
+              $error("second wrong input test wrong");
+              $stop;
+            end
           else
             $display("second wrong input test ok");
-          mbx2.put(-4);
+          mbx2.put(-1);
 
           //r1
-          data_wait_second_thread(5, mbx1);
+          data_wait_second_thread(1, mbx1);
           reset_check_task(1'b0, 16'b1011000000000101, 4'd2, 1'b1, task_res_flag);
           if( task_res_flag )
-            $error("reset test wrong");
+            begin
+              $error("reset test wrong");
+              $stop;
+            end
           else
             $display("reset test ok");
-          mbx2.put(-5);
+          mbx2.put(-1);
 
         end
       join
