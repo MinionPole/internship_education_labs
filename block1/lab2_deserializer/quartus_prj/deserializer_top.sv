@@ -30,7 +30,7 @@ module deserializer_top(
     output         deser_data,
     output         deser_data_val
 );
-
+  logic          srst_reg;
   logic  [15:0]  data_reg;
   logic          data_val_reg;
 
@@ -39,17 +39,18 @@ module deserializer_top(
 
   always_ff @(posedge clk_150mhz)
     begin
-	   data_reg <= data;
-		data_val_reg <= data_val;
+	  data_reg       <= data;
+		data_val_reg   <= data_val;
+    srst_reg       <= srst;
 		
-		deser_data <= deser_data_reg;
+		deser_data     <= deser_data_reg;
 		deser_data_val <= deser_data_val_reg;
     end
   
 
   deserializer deserializer_obj(
       .clk_i(clk_150mhz),
-      .srst_i(srst),
+      .srst_i(srst_reg),
       .data_i(data_reg),
       .data_val_i(data_val_reg),
     
