@@ -1,404 +1,134 @@
-`timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 09.08.2024 19:41:54
-// Design Name: 
-// Module Name: testbench_2
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
+module serializer_tb;
+
+bit clk  = 1'b0;
+bit srst = 1'b0;
+
+initial begin
+  forever #10 clk = ~clk;
+end
 
 
-module serializer_tb#(parameter MAX_WORK_TIMEOUT = 8, MAX_COOLDOWN_TIMEOUT = 100);
+default clocking cb @( posedge clk );
+endclocking
 
-  bit clk;
-  bit reset;
+task make_srst();
+  ##1;
+  srst <= 1'b1;
+  ##2;
+  srst <= 1'b0;
+endtask
 
-  logic[15:0] data_i;
-  logic[3:0] data_mod_i;
-  logic data_valid; 
+mailbox ref_bit_queue;
+mailbox bit_queue;
 
-  logic ser_data_o; 
-  logic ser_data_val_o; 
-  logic busy_ota_o; 
+logic [15:0] data_i     = '0;
+logic [3:0]  data_mod_i = '0;
+logic        data_val_i = 1'b0;
+logic        ser_data;
+logic        ser_val;
+logic        busy;
 
-  logic[3:0] how_many_data;
 
-  int timeout_counter;
+task create_trans( bit rand_mod = 1'b1, bit [4:0] _mod = '0 );
+  logic [15:0] data;
+  logic [4:0]  mod;
 
-  mailbox mbx1 = new(1);
-  mailbox mbx2 = new(1);
+  if( !rand_mod && ( _mod == 0 ) )
+    $warning( "_mod must be in range 1..16, not %2d! Do nothing %m.", _mod );
 
-  serializer ser_obj(
-      .clk_i(clk),
-      .srst_i(reset),
+  data = $urandom();
+  mod  = ( rand_mod ) ? $urandom_range( 1,16 ) : _mod;
 
-      .data_i(data_i),
-      .data_mod_i(data_mod_i),
-      .data_val_i(data_valid),
+  if( mod > 2 )
+    for( int i = 0; i < mod; i++ )
+      ref_bit_queue.put( data[15-i] );
 
-      .ser_data_o(ser_data_o),
-      .ser_data_val_o(ser_data_val_o),
-      .busy_o(busy_ota_o)
-   );
+  do
+    ##1;
+  while( busy );
+  data_i     <= data;
+  data_mod_i <= mod[3:0];
+  data_val_i <= 1'b1;
+  ##1;
+  data_val_i <= 1'b0;
+  data_i     <= 'x;
+endtask
 
-  task cooldown_wait();
+task checkd();
+  logic _ref;
+
+  forever
     begin
-      timeout_counter <= 0;
-      while( busy_ota_o && timeout_counter < MAX_COOLDOWN_TIMEOUT)
-        begin
-          @(posedge clk)
-          timeout_counter <= timeout_counter + 1;
-        end
-      if(timeout_counter == MAX_COOLDOWN_TIMEOUT)
-        begin
-         $error("too much busy");  
-        end    
+      if( ser_val === 1'b1 )
+      begin
+          ref_bit_queue.get( _ref );
+          if( _ref !== ser_data )
+            begin
+              $error( "Wrong data 0x%d 0x%d!", _ref, ser_data );
+              $stop();
+            end
+      end
+      ##1;
     end
-  endtask 
 
-  task insert_data(
-  input reset_t,
-  input         [15:0] data_i_t,
-  input         [3:0]  data_mod_i_t,
-  input                data_val_i_t);
+endtask
+
+
+task accumd();
+  bit ref_bit;
+  forever
     begin
-      reset           <= reset_t;
-      data_i          <= data_i_t;
-      data_mod_i      <= data_mod_i_t;
-      data_valid      <= data_val_i_t;
-      how_many_data   <= (data_mod_i_t == 0) ? 4'd16 : data_mod_i_t;
-      timeout_counter <= 0;
+      if( ser_val === 1'b1 )
+        bit_queue.put( ser_data );
+      ##1;
     end
-  endtask
+endtask
 
-   
-  task correct_data_check(
-  input reset_t,
-  input         [15:0] data_i_t,
-  input         [3:0]  data_mod_i_t,
-  input                data_val_i_t,
+initial
+  begin
+    bit_queue     = new();
+    ref_bit_queue = new();
 
-  output  logic        res_flag_t);
-    begin
-      res_flag_t    <= 1'b0;
-      while( !ser_data_val_o && timeout_counter < MAX_WORK_TIMEOUT )
-        begin
-         @(posedge clk)
-         timeout_counter <= timeout_counter + 1;
-        end
-      data_valid <= 1'b0;
-      for(int i = 0;i < how_many_data;i = i + 1)
-        begin
+    make_srst();
+    repeat ( 40 ) ##1;
 
-          if(! ( ser_data_o === data_i[15-i] ) )
-            begin
-              $error("error, wrong data out on first cycle in %d el, need = %b, get = %b", i, data_i[15-i], ser_data_o);
-              res_flag_t <= 1'b1;
-            end
+    fork
+      checkd();
+    join_none
+    for( int i = 1; i < 16; i++ )
+      create_trans( 1'b0, i );
+    repeat (10) create_trans( 1'b0, 16);
+    repeat (10) create_trans( 1'b0, 1 );
+    repeat (10) create_trans( 1'b0, 2 );
+    repeat (800) create_trans( 1'b1, 0 );
+    repeat ( 40 ) ##1;
+    if( ref_bit_queue.num() != 0 )
+      begin
+        $error("Have bits in referance queues %d!", ref_bit_queue.num() );
+        $stop();
+      end
+    if( bit_queue.num() != 0 )
+      begin
+        $error("Have extra output bits %d!", bit_queue.num());
+        $stop();
+      end
+    $display("End of simulation, no errors.");
+    $stop();
+  end
 
-          if( !( busy_ota_o === 1 ) )
-            begin
-              $error("error, must be busy on first cycle in %d el", i);
-              res_flag_t <= 1'b1;
-            end
+serializer DUT(
+  .clk_i          ( clk          ),
+  .srst_i         ( srst         ),
 
-          if( !(ser_data_val_o === 1) )
-            begin
-              $error("error, must be correct data_flag on first cycle in %d el", i);
-              res_flag_t <= 1'b1;
-            end
-          @(posedge clk);
-        end
-    end
-  endtask
-  
-  
-  task wrong_data_check_task(
-  input reset_t,
-  input         [15:0] data_i_t,
-  input         [3:0]  data_mod_i_t,
-  input                data_val_i_t,
+  .data_i         ( data_i       ),
+  .data_mod_i     ( data_mod_i   ),
+  .data_val_i     ( data_val_i   ),
 
-  output  logic        res_flag_t
-  );
-    begin    
-      res_flag_t    <= 1'b0;
+  .ser_data_o     ( ser_data     ),
+  .ser_data_val_o ( ser_val      ),
 
-      while( !busy_ota_o && timeout_counter < MAX_WORK_TIMEOUT )
-        begin
-          @(posedge clk)
-          timeout_counter <= timeout_counter + 1;
-        end
+  .busy_o         ( busy         )
+);
 
-      if(busy_ota_o === 1)
-        begin
-          $error("error, mustn't be busy ");
-          res_flag_t <= 1'b1;
-        end
 
-      data_valid <= 1'b0;
-    end
-  endtask
-
-  task data_wait_first_thread(
-  input int wait_num,
-  input mailbox mbx
-  );
-    begin
-      int local_value;
-      local_value <= 0;
-      while(local_value != wait_num)
-        begin
-          @(posedge clk);
-          mbx.try_peek(local_value);
-          //$display("wait %d, loc_val is %d", wait_num, local_value);
-        end
-      mbx.get(local_value);
-    end
-  endtask
-
-  task data_wait_second_thread(
-  input int wait_num,
-  input mailbox mbx
-  );
-    begin
-      int local_value;
-      local_value <= 0;
-      while(local_value != wait_num)
-        begin
-          @(posedge clk);
-          mbx.try_peek(local_value);
-          //$display("wait %d, loc_val is %d", wait_num, local_value);
-        end
-      mbx.get(local_value);
-    end
-  endtask
-
-  task reset_check_task(
-  input reset_t,
-  input         [15:0] data_i_t,
-  input         [3:0]  data_mod_i_t,
-  input                data_val_i_t,
-
-  output  logic        res_flag_t
-  );
-    begin    
-      res_flag_t    <= 1'b0;
-
-      while( !busy_ota_o && timeout_counter < MAX_WORK_TIMEOUT )
-        begin
-          @(posedge clk)
-          timeout_counter <= timeout_counter + 1;
-        end
-      data_valid <= 1'b0; 
-      if(busy_ota_o === 1)
-        begin
-          reset_t <= 1;
-          timeout_counter <= 0;
-        end
-
-      while( busy_ota_o && timeout_counter < MAX_WORK_TIMEOUT )
-        begin
-          @(posedge clk)
-          timeout_counter <= timeout_counter + 1;
-        end
-
-      if(timeout_counter == MAX_WORK_TIMEOUT)
-        res_flag_t <= 1'b1;
-    end
-  endtask 
-
-  initial 
-    forever
-      #5 clk = !clk;
-
-  initial
-    begin
-     reset <= 1;
-
-     @(posedge clk)
-     reset <= 0;
-     fork
-        begin
-          $display("first data test start");
-          insert_data(1'b0, 16'b1011000000000000, 4'd6, 1'b1);
-          mbx1.put(1);
-          data_wait_first_thread(-1, mbx2);
-
-          cooldown_wait();
-          $display("second data test start");
-          insert_data(1'b0, 16'b1011000000000101, 4'd0, 1'b1);
-          mbx1.put(1);
-          data_wait_first_thread(-1, mbx2);
-
-          cooldown_wait();
-          $display("third data test start");
-          insert_data(1'b0, 16'b0000000001100101, 4'd15, 1'b1);
-          mbx1.put(1);
-          data_wait_first_thread(-1, mbx2);
-
-          cooldown_wait();
-          $display("forth data test start");
-          insert_data(1'b0, 16'b0000000000000000, 4'd8, 1'b1);
-          mbx1.put(1);
-          data_wait_first_thread(-1, mbx2);
-
-          cooldown_wait();
-          $display("fifth data test start");
-          insert_data(1'b0, 16'b1111111111111111, 4'd3, 1'b1);
-          mbx1.put(1);
-          data_wait_first_thread(-1, mbx2);
-
-          cooldown_wait();
-          $display("sixth data test start");
-          insert_data(1'b0, 16'b0101100000110000, 4'd13, 1'b1);
-          mbx1.put(1);
-          data_wait_first_thread(-1, mbx2);
-
-          cooldown_wait();
-          $display("first wrong input test start");
-          insert_data(1'b0, 16'b1011000000000101, 4'd1, 1'b1);
-          mbx1.put(1);
-          data_wait_first_thread(-1, mbx2);
-
-          cooldown_wait();
-          $display("second wrong input test start");
-          insert_data(1'b0, 16'b1011000000000101, 4'd2, 1'b1);
-          mbx1.put(1);
-          data_wait_first_thread(-1, mbx2);
-
-          cooldown_wait();
-          $display("reset test start");
-          insert_data(1'b0, 16'b1011000000000101, 4'd2, 1'b1);
-          mbx1.put(1);
-          data_wait_first_thread(-1, mbx2);
-        end
-
-        begin
-          logic task_res_flag;
-          //d1
-          data_wait_second_thread(1, mbx1);
-          correct_data_check(1'b0, 16'b1011000000000000, 4'd6, 1'b1, task_res_flag);
-          if( task_res_flag )
-            begin
-              $error("first data test wrong");
-              $stop;
-            end
-          else
-            $display("first data test ok");
-          mbx2.put(-1);
-
-          //d2
-          data_wait_second_thread(1, mbx1);
-          correct_data_check(1'b0, 16'b1011000000000101, 4'd0, 1'b1, task_res_flag);
-          if( task_res_flag )
-            begin
-              $error("second data test wrong");
-              $stop;
-            end
-          else
-            $display("second data test ok");
-          mbx2.put(-1);
-
-          //d3
-          data_wait_second_thread(1, mbx1);
-          correct_data_check(1'b0, 16'b0000000001100101, 4'd15, 1'b1, task_res_flag);
-          if( task_res_flag )
-            begin
-              $error("third data test wrong");
-              $stop;
-            end
-          else
-            $display("third data test ok");
-          mbx2.put(-1);
-
-          //d4
-          data_wait_second_thread(1, mbx1);
-          correct_data_check(1'b0, 16'b0000000000000000, 4'd8, 1'b1, task_res_flag);
-          if( task_res_flag )
-            begin
-              $error("forth data test wrong");
-              $stop;
-            end
-          else
-            $display("forth data test ok");
-          mbx2.put(-1);
-
-          //d5
-          data_wait_second_thread(1, mbx1);
-          correct_data_check(1'b0, 16'b1111111111111111, 4'd3, 1'b1, task_res_flag);
-          if( task_res_flag )
-            begin
-              $error("fifth data test wrong");
-              $stop;
-            end
-          else
-            $display("fifth data test ok");
-          mbx2.put(-1);
-
-          //d6
-          data_wait_second_thread(1, mbx1);
-          correct_data_check(1'b0, 16'b0101100000110000, 4'd13, 1'b1, task_res_flag);
-          if( task_res_flag )
-            begin
-              $error("sixth data test wrong");
-              $stop;
-            end
-          else
-            $display("sixth data test ok");
-          mbx2.put(-1);
-
-          //w1
-          data_wait_second_thread(1, mbx1);
-          wrong_data_check_task(1'b0, 16'b1011000000000101, 4'd1, 1'b1, task_res_flag);
-          if( task_res_flag )
-            begin
-              $error("first wrong input test wrong");
-              $stop;
-            end
-          else
-            $display("first wrong input test ok");
-          mbx2.put(-1);
-
-          //w2
-          data_wait_second_thread(1, mbx1);
-          wrong_data_check_task(1'b0, 16'b1011000000000101, 4'd1, 1'b1, task_res_flag);
-          if( task_res_flag )
-            begin
-              $error("second wrong input test wrong");
-              $stop;
-            end
-          else
-            $display("second wrong input test ok");
-          mbx2.put(-1);
-
-          //r1
-          data_wait_second_thread(1, mbx1);
-          reset_check_task(1'b0, 16'b1011000000000101, 4'd2, 1'b1, task_res_flag);
-          if( task_res_flag )
-            begin
-              $error("reset test wrong");
-              $stop;
-            end
-          else
-            $display("reset test ok");
-          mbx2.put(-1);
-
-        end
-      join
-
-    end
-  
 endmodule

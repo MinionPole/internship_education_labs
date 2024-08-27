@@ -1,165 +1,54 @@
-`timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 04.08.2024 19:49:45
-// Design Name: 
-// Module Name: serializator
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-
-
 module serializer(
-    input         clk_i,
-    input         srst_i,
+  input        clk_i,
+  input        srst_i,
 
-    input  [15:0] data_i,
-    input  [3:0]  data_mod_i,
-    input         data_val_i,
+  input [15:0] data_i,
+  input [3:0]  data_mod_i,
+  input        data_val_i,
 
-    output        ser_data_o,
-    output        ser_data_val_o,
-    output        busy_o
-    );
+  output       ser_data_o,
+  output       ser_data_val_o,
 
-  logic ser_data_o_reg;
-  logic ser_data_val_o_reg;
-  logic busy_o_reg;
+  output       busy_o
+);
 
-  assign ser_data_o     = ser_data_o_reg;
-  assign ser_data_val_o = ser_data_val_o_reg;
-  assign busy_o         = busy_o_reg;
+logic [4:0] real_mod;
+logic [4:0] cnt;
+logic [15:0] data;
+logic [4:0] not_cnt;
 
-  logic  [15:0] data_copy;
-  logic  [3:0]  now_to_write;
-  logic  [3:0]  max_to_write;
-  logic zero_bit_flag;
+always_comb
+  begin
+  not_cnt = (cnt != 0);
+  end
 
-  logic write_flag;
-  assign write_flag = ( now_to_write < max_to_write || zero_bit_flag );
-  logic wait_flag;
-  assign wait_flag = ( data_val_i == 1'b1 && data_mod_i != 4'b0001 && data_mod_i != 4'b0010 );
+always_comb
+  begin
+    real_mod = data_mod_i;
+    case( data_mod_i )
+      0   : real_mod = 16;
+      1,2 : real_mod = 0;
+    endcase
+  end
 
-  //ser_data_o_reg block
-  always_ff @( posedge clk_i )
-    begin
-      if( srst_i )
-        // reset
-        ser_data_o_reg     <= 1'b0;
-      else
-        if( busy_o_reg )
-          // writing
-          if( !(write_flag) )
-            ser_data_o_reg  <= data_copy[now_to_write];
-    end
+always_ff @( posedge clk_i )
+  if( srst_i )
+    cnt <= '0;
+  else
+    if( data_val_i && !busy_o )
+      cnt <= real_mod;
+    else
+      if( cnt != '0 )
+        cnt <= cnt - 1;
 
-  //ser_data_val_o_reg block
-  always_ff @( posedge clk_i )
-    begin
-      if( srst_i )
-        // reset
-        ser_data_val_o_reg <= 1'b0;
-      else
-        if( busy_o_reg )
-          // writing
-          if(write_flag)
-            ser_data_val_o_reg <= 1'b0;
-          else
-            ser_data_val_o_reg <= 1'b1;
-    end
+always_ff @( posedge clk_i )
+  if( data_val_i && !busy_o )
+    data <= data_i;
+  else
+    data <= data << 1;
 
-  //busy_o_reg block
-  always_ff @( posedge clk_i )
-    begin
-      if( srst_i )
-        // reset
-        busy_o_reg <= 1'b0;
-      else
-        if( busy_o_reg )
-          begin
-            // writing
-            if(write_flag)
-              busy_o_reg <= 1'b0;
-          end
-        else
-          // wait in
-          if( wait_flag )
-            busy_o_reg <= 1'b1;
-    end
+assign ser_data_o     = data[15];
+assign ser_data_val_o = not_cnt;
+assign busy_o         = ser_data_val_o;
 
-  //data_copy block
-  always_ff @( posedge clk_i )
-    begin
-      if( srst_i )
-        // reset
-        data_copy <= 16'b0;
-      else
-        if( !( busy_o_reg ) )
-          if( wait_flag )
-            data_copy <= data_i;
-    end
-
-  //now_to_write block
-  always_ff @( posedge clk_i )
-    begin
-      if( srst_i )
-        // reset  
-        now_to_write <= 4'b0;
-      else
-        if( busy_o_reg )
-          begin
-            // writing
-            if( !(write_flag))
-              if( now_to_write != 4'b0 )
-                now_to_write  <= now_to_write - 1'b1;
-          end
-        else
-          // wait in
-          if( wait_flag )
-            now_to_write    <= 4'd15;
-    end
-
-  //max_to_write block
-  always_ff @( posedge clk_i )
-    begin
-      if( srst_i )
-        // reset
-        max_to_write <= 4'b0;
-      else
-        if( !( busy_o_reg ) )
-          if( wait_flag )
-            if( data_mod_i == 4'b0000 )
-               max_to_write <= 4'd0;
-            else
-               max_to_write <= ( 4'd15 - data_mod_i + 4'd1 );
-    end
-
-  //zero_bit_flag block
-  always_ff @( posedge clk_i )
-    begin
-      if( srst_i )
-        // reset
-        zero_bit_flag <= 1'b0;
-      else
-        begin
-          if( busy_o_reg )
-            // writing
-            if(write_flag )
-              zero_bit_flag   <= 1'b0;
-            else
-              if( now_to_write == 4'b0 )
-                zero_bit_flag <= 1'b1;
-        end
-    end
 endmodule
