@@ -32,26 +32,26 @@ module deserializer(
     logic [15:0] deser_data_o_reg;
     assign deser_data_o = deser_data_o_reg;
     
-    logic [15:0] deser_data_val_o_reg;
+    logic deser_data_val_o_reg;
     assign deser_data_val_o = deser_data_val_o_reg;
-    
+
     logic [4:0] cnt;
-    
+
     always_ff @(posedge clk_i)
       begin
-        if(srst_i) 
+        if(srst_i)
           begin
-           cnt <= 5'd15;
+            cnt <= 5'd15;
           end
         else
           begin
             if(data_val_i)
-                begin
-                    if(cnt == 0)
-                      cnt <= 5'd15;
-                    else
-                      cnt <= cnt - 1;
-                end
+              begin
+                if(cnt == 0)
+                  cnt <= 5'd15;
+                else
+                  cnt <= (cnt - 1'b1);
+              end
           end
       end
       

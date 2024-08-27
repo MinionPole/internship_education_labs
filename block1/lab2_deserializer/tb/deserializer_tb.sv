@@ -25,10 +25,10 @@ module deserializer_tb;
   logic          srst;
   logic          data;
   logic          data_val;
-  
+
   logic [15:0]  deser_data;
   logic         deser_data_val;
-  
+
   deserializer deserializer_obj(
     .clk_i(clk),
     .srst_i(srst),
@@ -38,19 +38,18 @@ module deserializer_tb;
     .deser_data_o(deser_data),
     .deser_data_val_o(deser_data_val)
   );
-  
+
   mailbox mbx;
   int cnt = 0;
-  
   default clocking cb @( posedge clk );
   endclocking
-  
-  initial 
+
+  initial
     begin
       clk = 0;
       forever #5 clk = !clk;
     end
-    
+
   task generate_value();
       logic [15:0] local_val;
       cnt = 0;
@@ -73,10 +72,9 @@ module deserializer_tb;
       ##1;
   endtask
   
-    task check_value();
-      logic [15:0] local_val;
-      
-      forever
+  task check_value();
+    logic [15:0] local_val;
+    forever
       begin
         if(deser_data_val)
           begin
@@ -87,12 +85,12 @@ module deserializer_tb;
                 $stop;
               end
             else
-               $display("successful test value is %b", local_val);  
+              $display("successful test value is %b", local_val);  
           end
-          ##1;
+        ##1;
       end
     endtask
-  
+
   task make_srst();
     ##1;
     srst <= 1'b1;
@@ -102,7 +100,7 @@ module deserializer_tb;
   
   initial
   begin
-    mbx = new();    
+    mbx = new();
     make_srst();
     
     fork
@@ -114,6 +112,5 @@ module deserializer_tb;
 
     repeat ( 40 ) ##1;
     $display("all is ok");
-  end    
-      
+  end
 endmodule
