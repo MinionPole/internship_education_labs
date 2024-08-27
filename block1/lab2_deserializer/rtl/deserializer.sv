@@ -36,7 +36,7 @@ module deserializer(
   assign deser_data_val_o = deser_data_val_o_reg;
 
   logic [4:0] cnt;
-
+  
   always_ff @(posedge clk_i)
     begin
       if(srst_i)
@@ -65,7 +65,10 @@ module deserializer(
 
   always_ff @(posedge clk_i)
     begin
-      deser_data_val_o_reg <= (cnt == 0 );
+      if(data_val_i)
+        begin
+          deser_data_val_o_reg <= ( cnt == 0 );
+        end
     end
 
 endmodule

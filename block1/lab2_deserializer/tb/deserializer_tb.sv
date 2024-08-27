@@ -57,7 +57,7 @@ module deserializer_tb;
     while(cnt != 16)
       begin
         data_val <= 0;
-        if(!($urandom() % 6 == 0)) // +- every 6 posedge clk we don't give value
+        if(($urandom() % 6 == 0)) // +- every 6 posedge clk we don't give value
           begin
             data <= local_val[15-cnt];
             data_val <= 1;
@@ -106,7 +106,7 @@ module deserializer_tb;
       check_value();
     join_none
 
-    repeat ( 600 ) generate_value();
+    repeat ( 1000 ) generate_value();
 
     ##40;
     $display("all is ok");
