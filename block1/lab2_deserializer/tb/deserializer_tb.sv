@@ -51,25 +51,24 @@ module deserializer_tb;
     end
 
   task generate_value();
-      logic [15:0] local_val;
-      cnt = 0;
-      local_val = $urandom();
-      while(cnt != 16)
-        begin
-          data_val <= 0;
-          if(!($urandom() % 6 == 0)) // +- every 6 posedge clk we don't give value
-            begin
-              data <= local_val[15-cnt];
-              data_val <= 1;
-              cnt <= cnt + 1;
-            end
-          ##1;
-        end
-      cnt = 0;
-      //$display("i put %b", local_val);
-      data_val <= 0;
-      mbx.put(local_val);
-      ##1;
+    logic [15:0] local_val;
+    cnt = 0;
+    local_val = $urandom();
+    while(cnt != 16)
+      begin
+        data_val <= 0;
+        if(!($urandom() % 6 == 0)) // +- every 6 posedge clk we don't give value
+          begin
+            data <= local_val[15-cnt];
+            data_val <= 1;
+            cnt <= cnt + 1;
+          end
+        ##1;
+      end
+    cnt = 0;
+    //$display("i put %b", local_val);
+    data_val <= 0;
+    mbx.put(local_val);
   endtask
   
   task check_value();
@@ -89,28 +88,28 @@ module deserializer_tb;
           end
         ##1;
       end
-    endtask
+  endtask
 
   task make_srst();
     ##1;
     srst <= 1'b1;
-    ##2;
+    ##1;
     srst <= 1'b0;
   endtask
-  
+
   initial
   begin
     mbx = new();
     make_srst();
-    
+
     fork
       check_value();
     join_none
-    
 
-    repeat ( 300 ) generate_value();
+    repeat ( 600 ) generate_value();
 
-    repeat ( 40 ) ##1;
+    ##40;
     $display("all is ok");
+    $stop();
   end
 endmodule
