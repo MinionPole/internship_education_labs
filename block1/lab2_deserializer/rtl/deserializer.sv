@@ -21,19 +21,14 @@
 
 
 module deserializer(
-  input          clk_i,
-  input          srst_i,
-  input          data_i,
-  input          data_val_i,
+  input                clk_i,
+  input                srst_i,
+  input                data_i,
+  input                data_val_i,
     
-  output [15:0]  deser_data_o,
-  output         deser_data_val_o
+  output logic [15:0]  deser_data_o,
+  output logic         deser_data_val_o
   );
-  logic [15:0] deser_data_o_reg;
-  assign deser_data_o = deser_data_o_reg;
-
-  logic deser_data_val_o_reg;
-  assign deser_data_val_o = deser_data_val_o_reg;
 
   logic [4:0] cnt;
 
@@ -59,7 +54,7 @@ module deserializer(
     begin
       if(data_val_i)
         begin
-          deser_data_o_reg <= {deser_data_o_reg[14:0], data_i};
+          deser_data_o <= {deser_data_o[14:0], data_i};
         end
     end
 
@@ -67,10 +62,10 @@ module deserializer(
     begin
       if(data_val_i)
         begin
-          deser_data_val_o_reg <= ( cnt == 0 );
+          deser_data_val_o <= ( cnt == 0 );
         end
       else
-        deser_data_val_o_reg <= 0;
+        deser_data_val_o <= 0;
     end
 
 endmodule
