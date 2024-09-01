@@ -53,13 +53,16 @@ module deserializer_tb;
   task generate_test_with_delay(
     logic [15:0] input_data,
     int delta,
-    logic rand_data_flag
+    logic rand_data_flag,
+    logic rand_delta_flag
   );
     if(rand_data_flag)
       input_data = $urandom();
 
     for(int i = 0; i < 16; i++)
       begin
+        if(rand_delta_flag)
+          delta = ($urandom() % 50) + 2;
         for(int j = 1; j < delta; j++)
           begin
             if(j == 1)
@@ -77,27 +80,6 @@ module deserializer_tb;
     //$display("i put %b", input_data);
     data_val <= 0;
     mbx.put(input_data);
-  endtask
-
-  task generate_value_rand();
-    logic [15:0] local_val;
-    cnt = 0;
-    local_val <= $urandom();
-    while(cnt != 16)
-      begin
-        data_val <= 0;
-        if(!($urandom() % 6 == 0))  // +- every 6 posedge clk we give value
-          begin
-            data     <= local_val[15-cnt];
-            data_val <= 1;
-            cnt      <= cnt + 1;
-          end
-        ##1;
-      end
-    cnt = 0;
-    //$display("i put %b", local_val);
-    data_val <= 0;
-    mbx.put(local_val);
   endtask
   
   task check_value();
@@ -135,14 +117,14 @@ module deserializer_tb;
       check_value();
     join_none
 
-    generate_test_with_delay('0, 2, 0);
-    generate_test_with_delay('1, 2, 0);
+    generate_test_with_delay('0, 2, 0, 0);
+    generate_test_with_delay('1, 2, 0, 0);
     for(int i = 2; i < 20;i++)
       begin
-        generate_test_with_delay('0, i, 1);
+        generate_test_with_delay('0, i, 1, 0);
       end
 
-    repeat ( 1000 ) generate_value_rand();
+    repeat ( 1000 ) generate_test_with_delay('0, 2, 1, 1);
 
     ##40;
     $display("all is ok");
