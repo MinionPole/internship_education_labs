@@ -12,7 +12,6 @@ module priority_encoder
     output logic [(WIDTH-1):0]  data_right_o,
     output logic                data_val_o
   );
-  logic [(WIDTH-1):0] zero_data = '0;
   int right_o_ind;
   int left_o_ind;
   always_comb
