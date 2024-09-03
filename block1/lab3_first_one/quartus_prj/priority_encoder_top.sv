@@ -51,7 +51,6 @@ module priority_encoder_top  #(
       data_right_o         <= data_right_o_reg;
       data_val_o           <= data_val_o_reg;
     end
-  
 
   priority_encoder#(WIDTH) priority_encoder_obj(
     .clk_i(clk_150mhz),

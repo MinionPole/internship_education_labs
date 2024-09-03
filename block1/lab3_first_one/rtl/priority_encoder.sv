@@ -27,7 +27,7 @@ module priority_encoder
         begin
           if(data_i[i] == 1)
             left_o_ind = i;
-        end  
+        end
     end
 
   always_ff @(posedge clk_i)
@@ -68,6 +68,5 @@ module priority_encoder
     begin
       data_val_o <= (data_val_i == 1);
     end
-    
 
 endmodule
