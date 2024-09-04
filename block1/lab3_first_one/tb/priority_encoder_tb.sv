@@ -25,12 +25,8 @@ module priority_encoder_tb#(parameter WIDTH = 3)();
   default clocking cb @( posedge clk );
   endclocking
 
-  task get_left_ans(
-    input logic [(WIDTH-1):0] local_val,
-    inout logic [(WIDTH-1):0] left_ans 
-  );
-    static int temp = 0;
-    left_ans = '0;
+  function logic [(WIDTH-1):0] get_left_ans(input logic [(WIDTH-1):0] local_val);
+    automatic logic [(WIDTH-1):0] left_ans = '0;
     for(int i = 0; i < WIDTH;i++)
       begin
         if(local_val[i] == 1)
@@ -40,14 +36,11 @@ module priority_encoder_tb#(parameter WIDTH = 3)();
           end
       end
     //$display("left ans is %b", left_ans);
-  endtask
+    return left_ans;
+  endfunction
 
-  task get_right_ans(
-    input logic [(WIDTH-1):0] local_val,
-    inout logic [(WIDTH-1):0] right_ans
-  );
-    static int temp = 0;
-    right_ans = '0;
+  function logic [(WIDTH-1):0] get_right_ans(input logic [(WIDTH-1):0] local_val);
+    automatic logic [(WIDTH-1):0] right_ans = '0;
     for(int i = WIDTH - 1; i >= 0;i--)
       begin
         if(local_val[i] == 1)
@@ -56,8 +49,9 @@ module priority_encoder_tb#(parameter WIDTH = 3)();
             i = -1;
           end
       end
-    //$display("right ans is %b", right_ans);
-  endtask
+    //$display("left ans is %b", left_ans);
+    return right_ans;
+  endfunction
 
   task generate_value(
     logic [(WIDTH-1):0] input_data,
@@ -91,8 +85,8 @@ module priority_encoder_tb#(parameter WIDTH = 3)();
                 $stop();
               end
             //$display("start test with data %b", local_val);
-            get_left_ans(local_val, left_ans);
-            get_right_ans(local_val, right_ans);
+            left_ans = get_left_ans(local_val);
+            right_ans = get_right_ans(local_val);
             if(!(left_ans === data_left))
               begin
                 $error("dismatch left value get %b, requires %b", data_left, left_ans);
@@ -140,10 +134,9 @@ module priority_encoder_tb#(parameter WIDTH = 3)();
 
       if( mbx.num() != 0 )
         begin
-          $error("Have bits in referance queues %d!");
+          $error("Have bits in referance queues!");
           $stop();
         end
-
       $stop;
     end
 
