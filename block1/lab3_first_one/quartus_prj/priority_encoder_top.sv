@@ -20,18 +20,17 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module priority_encoder_top  #(
-    parameter WIDTH = 5
-  )
-  (
-    input                       clk_150mhz,
-    input                       srst_i,
-    input        [(WIDTH-1):0]  data_i,
-    input                       data_val_i,
+module priority_encoder_top #(
+  parameter WIDTH = 3
+)(
+  input                       clk_150mhz,
+  input                       srst_i,
+  input        [(WIDTH-1):0]  data_i,
+  input                       data_val_i,
 
-    output logic [(WIDTH-1):0]  data_left_o,
-    output logic [(WIDTH-1):0]  data_right_o,
-    output logic                data_val_o
+  output logic [(WIDTH-1):0]  data_left_o,
+  output logic [(WIDTH-1):0]  data_right_o,
+  output logic                data_val_o
 );
     logic                       srst_i_reg;
     logic        [(WIDTH-1):0]  data_i_reg;

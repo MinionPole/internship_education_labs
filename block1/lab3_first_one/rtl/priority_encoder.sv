@@ -1,17 +1,15 @@
-module priority_encoder
-  #(
-    parameter WIDTH = 5
-  )
-  (
-    input                       clk_i,
-    input                       srst_i,
-    input        [(WIDTH-1):0]  data_i,
-    input                       data_val_i,
+module priority_encoder #(
+  parameter WIDTH = 3
+)(
+  input                       clk_i,
+  input                       srst_i,
+  input        [(WIDTH-1):0]  data_i,
+  input                       data_val_i,
 
-    output logic [(WIDTH-1):0]  data_left_o,
-    output logic [(WIDTH-1):0]  data_right_o,
-    output logic                data_val_o
-  );
+  output logic [(WIDTH-1):0]  data_left_o,
+  output logic [(WIDTH-1):0]  data_right_o,
+  output logic                data_val_o
+);
   
   int left_o_ind;
   int right_o_ind;

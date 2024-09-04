@@ -1,4 +1,6 @@
-module priority_encoder_tb#(parameter WIDTH = 3)();
+module priority_encoder_tb #(
+  parameter WIDTH = 3
+);
 
   logic                clk;
   logic                srst;
@@ -32,7 +34,7 @@ module priority_encoder_tb#(parameter WIDTH = 3)();
         automatic logic [(WIDTH-1):0] mask = '0;
         mask[i] = 1;
         if(left_ans & mask)
-          begin
+          beginsim:/priority_encoder_tb
             left_ans = left_ans & mask;
           end
       end
