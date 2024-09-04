@@ -85,20 +85,24 @@ module priority_encoder_tb#(parameter WIDTH = 3)();
       begin
         if(data_val_o)
           begin
-            mbx.get(local_val);
+            if(!mbx.try_get(local_val))
+              begin
+                $error("try to get value from empty, queue, check data_val_o wave");
+                $stop();
+              end
             //$display("start test with data %b", local_val);
             get_left_ans(local_val, left_ans);
             get_right_ans(local_val, right_ans);
             if(!(left_ans === data_left))
               begin
                 $error("dismatch left value get %b, requires %b", data_left, left_ans);
-                $stop;
+                $stop();
               end
 
             if(!(right_ans === data_right))
               begin
                 $error("dismatch right value get %b, requires %b", data_right, right_ans);
-                $stop;
+                $stop();
               end
 
             $display("successful test with data %b", local_val);
