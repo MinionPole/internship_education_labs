@@ -26,13 +26,14 @@ module priority_encoder_tb#(parameter WIDTH = 3)();
   endclocking
 
   function logic [(WIDTH-1):0] get_left_ans(input logic [(WIDTH-1):0] local_val);
-    automatic logic [(WIDTH-1):0] left_ans = '0;
+    automatic logic [(WIDTH-1):0] left_ans = local_val;
     for(int i = 0; i < WIDTH;i++)
       begin
-        if(local_val[i] == 1)
+        automatic logic [(WIDTH-1):0] mask = '0;
+        mask[i] = 1;
+        if(left_ans & mask)
           begin
-            left_ans[i] = 1;
-            i = WIDTH;
+            left_ans = left_ans & mask;
           end
       end
     //$display("left ans is %b", left_ans);
@@ -40,13 +41,14 @@ module priority_encoder_tb#(parameter WIDTH = 3)();
   endfunction
 
   function logic [(WIDTH-1):0] get_right_ans(input logic [(WIDTH-1):0] local_val);
-    automatic logic [(WIDTH-1):0] right_ans = '0;
+    automatic logic [(WIDTH-1):0] right_ans = local_val;
     for(int i = WIDTH - 1; i >= 0;i--)
       begin
-        if(local_val[i] == 1)
+        automatic logic [(WIDTH-1):0] mask = '0;
+        mask[i] = 1;
+        if(right_ans & mask)
           begin
-            right_ans[i] = 1;
-            i = -1;
+            right_ans = right_ans & mask;
           end
       end
     //$display("left ans is %b", left_ans);
