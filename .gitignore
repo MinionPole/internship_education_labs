@@ -1,4 +1,6 @@
 **/work/
+**/.qsys_edit/
+**/*.qws
 **/db/
 **/incremental_db/
 **/output_files/
