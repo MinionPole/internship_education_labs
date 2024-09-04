@@ -133,6 +133,13 @@ module priority_encoder_tb#(parameter WIDTH = 3)();
       generate_value('1, 0);
       repeat(100) generate_value('0, 1);
       ##20;
+
+      if( mbx.num() != 0 )
+        begin
+          $error("Have bits in referance queues %d!");
+          $stop();
+        end
+
       $stop;
     end
 
