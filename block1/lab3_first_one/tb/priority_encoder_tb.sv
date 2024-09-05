@@ -28,31 +28,27 @@ module priority_encoder_tb #(
   endclocking
 
   function logic [(WIDTH-1):0] get_left_ans(input logic [(WIDTH-1):0] local_val);
-    automatic logic [(WIDTH-1):0] left_ans = local_val;
+    automatic logic [(WIDTH-1):0] left_ans = '0;
     for(int i = 0; i < WIDTH;i++)
       begin
-        automatic logic [(WIDTH-1):0] mask = '0;
-        mask[i] = 1;
-        if(left_ans & mask)
-            left_ans = left_ans & mask;
+        if(local_val >= (1 << i))
+          left_ans = (1 << i);
       end
     //$display("left ans is %b", left_ans);
     return left_ans;
   endfunction
 
   function logic [(WIDTH-1):0] get_right_ans(input logic [(WIDTH-1):0] local_val);
-    automatic logic [(WIDTH-1):0] right_ans = local_val;
-    for(int i = WIDTH - 1; i >= 0;i--)
-      begin
-        automatic logic [(WIDTH-1):0] mask = '0;
-        mask[i] = 1;
-        if(right_ans & mask)
-          begin
-            right_ans = right_ans & mask;
-          end
-      end
-    //$display("left ans is %b", left_ans);
-    return right_ans;
+    automatic logic [(WIDTH-1):0] temp;
+    automatic logic [(WIDTH-1):0] right_ans;
+    for (int i = 0; i < WIDTH; i++) begin
+        temp[i] = local_val[WIDTH - 1 - i];
+    end
+    right_ans = get_left_ans(temp);
+    for (int i = 0; i < WIDTH; i++) begin
+        temp[i] = right_ans[WIDTH - 1 - i];
+    end
+    return {temp};
   endfunction
 
   task generate_value(

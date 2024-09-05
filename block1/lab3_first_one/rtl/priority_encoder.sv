@@ -17,7 +17,7 @@ module priority_encoder #(
     begin
       logic[$clog2(WIDTH) + 1:0] i;
       right_o_ind = WIDTH;
-      for(i = 0; i < WIDTH;i++)
+      for(i = WIDTH - 1; i >= 0 && i < WIDTH;i--)
         begin
           if(data_i[i] == 1)
             right_o_ind = i;
@@ -28,10 +28,12 @@ module priority_encoder #(
     begin
       logic[$clog2(WIDTH) + 1:0] i;
       left_o_ind = WIDTH;
-      for(i = WIDTH - 1; i >= 0 && i < WIDTH;i--)
+      for(i = 0; i < WIDTH;i++)
         begin
           if(data_i[i] == 1)
-            left_o_ind = i;
+            begin
+              left_o_ind = i;
+            end
         end
     end
 
