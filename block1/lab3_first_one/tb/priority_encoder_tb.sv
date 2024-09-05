@@ -34,9 +34,7 @@ module priority_encoder_tb #(
         automatic logic [(WIDTH-1):0] mask = '0;
         mask[i] = 1;
         if(left_ans & mask)
-          beginsim:/priority_encoder_tb
             left_ans = left_ans & mask;
-          end
       end
     //$display("left ans is %b", left_ans);
     return left_ans;

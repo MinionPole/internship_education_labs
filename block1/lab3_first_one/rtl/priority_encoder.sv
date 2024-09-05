@@ -11,12 +11,13 @@ module priority_encoder #(
   output logic                data_val_o
 );
   
-  int left_o_ind;
-  int right_o_ind;
+  logic[$clog2(WIDTH) + 1:0] left_o_ind;
+  logic[$clog2(WIDTH) + 1:0] right_o_ind;
   always_comb
     begin
-      right_o_ind = -1;
-      for(int i = 0; i < WIDTH;i++)
+      logic[$clog2(WIDTH) + 1:0] i;
+      right_o_ind = WIDTH;
+      for(i = 0; i < WIDTH;i++)
         begin
           if(data_i[i] == 1)
             right_o_ind = i;
@@ -25,8 +26,9 @@ module priority_encoder #(
 
   always_comb
     begin
-      left_o_ind = -1;
-      for(int i = WIDTH - 1; i >= 0;i--)
+      logic[$clog2(WIDTH) + 1:0] i;
+      left_o_ind = WIDTH;
+      for(i = WIDTH - 1; i >= 0 && i < WIDTH;i--)
         begin
           if(data_i[i] == 1)
             left_o_ind = i;
@@ -44,7 +46,7 @@ module priority_encoder #(
           if(data_val_i)
             begin
               data_right_o <= '0;
-              if(right_o_ind != -1)
+              if(right_o_ind != WIDTH)
                 data_right_o[right_o_ind] <= 1'b1;
             end
         end
@@ -61,7 +63,7 @@ module priority_encoder #(
           if(data_val_i)
             begin
               data_left_o <= 0;
-              if(left_o_ind != -1)
+              if(left_o_ind != WIDTH)
                 data_left_o[left_o_ind] <= 1;
             end
         end
