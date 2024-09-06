@@ -18,10 +18,8 @@ module priority_encoder #(
       logic[$clog2(WIDTH) + 1:0] i;
       right_o_ind = WIDTH;
       for(i = WIDTH - 1; i >= 0 && i < WIDTH;i--)
-        begin
-          if(data_i[i] == 1)
-            right_o_ind = i;
-        end
+        if(data_i[i] == 1)
+          right_o_ind = i;
     end
 
   always_comb
@@ -29,54 +27,40 @@ module priority_encoder #(
       logic[$clog2(WIDTH) + 1:0] i;
       left_o_ind = WIDTH;
       for(i = 0; i < WIDTH;i++)
-        begin
-          if(data_i[i] == 1)
-            begin
-              left_o_ind = i;
-            end
-        end
+        if(data_i[i] == 1)
+          left_o_ind = i;
     end
 
   always_ff @(posedge clk_i)
     begin
       if(srst_i)
-        begin
-          data_right_o <= 0;
-        end
+        data_right_o <= 0;
       else
-        begin
-          if(data_val_i)
-            begin
-              data_right_o <= '0;
-              if(right_o_ind != WIDTH)
-                data_right_o[right_o_ind] <= 1'b1;
-            end
-        end
+        if(data_val_i)
+          begin
+            data_right_o <= '0;
+            if(right_o_ind != WIDTH)
+              data_right_o[right_o_ind] <= 1'b1;
+          end
     end
 
   always_ff @(posedge clk_i)
     begin
       if(srst_i)
-        begin
-          data_left_o <= 0;
-        end
+        data_left_o <= 0;
       else
-        begin
-          if(data_val_i)
-            begin
-              data_left_o <= 0;
-              if(left_o_ind != WIDTH)
-                data_left_o[left_o_ind] <= 1;
-            end
-        end
+        if(data_val_i)
+          begin
+            data_left_o <= 0;
+            if(left_o_ind != WIDTH)
+              data_left_o[left_o_ind] <= 1;
+          end
     end
 
   always_ff @(posedge clk_i)
     begin
       if(srst_i)
-        begin
-          data_val_o <= 0;
-        end
+        data_val_o <= 0;
       else
         data_val_o <= (data_val_i == 1);
     end

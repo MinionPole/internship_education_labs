@@ -30,10 +30,8 @@ module priority_encoder_tb #(
   function automatic logic [(WIDTH-1):0] get_left_ans(input logic [(WIDTH-1):0] local_val);
     logic [(WIDTH-1):0] left_ans = '0;
     for(int i = 0; i < WIDTH;i++)
-      begin
-        if(local_val >= (1 << i))
-          left_ans = (1 << i);
-      end
+      if(local_val >= (1 << i))
+        left_ans = (1 << i);
     //$display("left ans is %b", left_ans);
     return left_ans;
   endfunction
@@ -41,13 +39,13 @@ module priority_encoder_tb #(
   function automatic logic [(WIDTH-1):0] get_right_ans(input logic [(WIDTH-1):0] local_val);
     logic [(WIDTH-1):0] temp;
     logic [(WIDTH-1):0] right_ans;
-    for (int i = 0; i < WIDTH; i++) begin
-        temp[i] = local_val[WIDTH - 1 - i];
-    end
+    for (int i = 0; i < WIDTH; i++)
+      temp[i] = local_val[WIDTH - 1 - i];
+
     right_ans = get_left_ans(temp);
-    for (int i = 0; i < WIDTH; i++) begin
-        temp[i] = right_ans[WIDTH - 1 - i];
-    end
+    for (int i = 0; i < WIDTH; i++)
+      temp[i] = right_ans[WIDTH - 1 - i];
+      
     return {temp};
   endfunction
 
