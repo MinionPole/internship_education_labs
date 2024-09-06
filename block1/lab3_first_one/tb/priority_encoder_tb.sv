@@ -27,8 +27,8 @@ module priority_encoder_tb #(
   default clocking cb @( posedge clk );
   endclocking
 
-  function logic [(WIDTH-1):0] get_left_ans(input logic [(WIDTH-1):0] local_val);
-    automatic logic [(WIDTH-1):0] left_ans = '0;
+  function automatic logic [(WIDTH-1):0] get_left_ans(input logic [(WIDTH-1):0] local_val);
+    logic [(WIDTH-1):0] left_ans = '0;
     for(int i = 0; i < WIDTH;i++)
       begin
         if(local_val >= (1 << i))
@@ -38,9 +38,9 @@ module priority_encoder_tb #(
     return left_ans;
   endfunction
 
-  function logic [(WIDTH-1):0] get_right_ans(input logic [(WIDTH-1):0] local_val);
-    automatic logic [(WIDTH-1):0] temp;
-    automatic logic [(WIDTH-1):0] right_ans;
+  function automatic logic [(WIDTH-1):0] get_right_ans(input logic [(WIDTH-1):0] local_val);
+    logic [(WIDTH-1):0] temp;
+    logic [(WIDTH-1):0] right_ans;
     for (int i = 0; i < WIDTH; i++) begin
         temp[i] = local_val[WIDTH - 1 - i];
     end
@@ -118,6 +118,7 @@ module priority_encoder_tb #(
 
   initial
     begin
+
       mbx = new();
       make_srst();
 

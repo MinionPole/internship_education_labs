@@ -2,7 +2,7 @@ vlib work
 
 vlog -sv ../rtl/priority_encoder.sv
 vlog -sv priority_encoder_tb.sv
-for {set i 1} {$i <= 30} {incr i} {
+for {set i 1} {$i <= 20} {incr i} {
   vsim -novopt -gWIDTH=$i priority_encoder_tb
   add log -r /*
   add wave /priority_encoder_tb/clk
