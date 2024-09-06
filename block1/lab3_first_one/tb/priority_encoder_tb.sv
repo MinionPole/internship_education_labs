@@ -27,27 +27,16 @@ module priority_encoder_tb #(
   default clocking cb @( posedge clk );
   endclocking
 
-  function automatic logic [(WIDTH-1):0] get_left_ans(input logic [(WIDTH-1):0] local_val);
-    logic [(WIDTH-1):0] left_ans = '0;
-    for(int i = 0; i < WIDTH;i++)
-      if(local_val >= (1 << i))
-        left_ans = (1 << i);
-    //$display("left ans is %b", left_ans);
-    return left_ans;
-  endfunction
-
   function automatic logic [(WIDTH-1):0] get_right_ans(input logic [(WIDTH-1):0] local_val);
-    logic [(WIDTH-1):0] temp;
-    logic [(WIDTH-1):0] right_ans;
-    for (int i = 0; i < WIDTH; i++)
-      temp[i] = local_val[WIDTH - 1 - i];
-
-    right_ans = get_left_ans(temp);
-    for (int i = 0; i < WIDTH; i++)
-      temp[i] = right_ans[WIDTH - 1 - i];
-      
-    return {temp};
+    return {local_val & (~(local_val-1))};
   endfunction
+
+  function automatic logic [(WIDTH-1):0] get_left_ans(input logic [(WIDTH-1):0] local_val);
+    logic [(WIDTH-1):0] left_ans = get_right_ans( {<<{local_val}} );
+    return {<<{left_ans}};
+  endfunction
+
+
 
   task generate_value(
     logic [(WIDTH-1):0] input_data,
@@ -116,7 +105,6 @@ module priority_encoder_tb #(
 
   initial
     begin
-
       mbx = new();
       make_srst();
 
