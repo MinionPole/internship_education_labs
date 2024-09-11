@@ -19,27 +19,31 @@ module bit_population_counter #(
   logic                                  data_val_o_out1;
   logic [$clog2(MID_VAL) + 1:0]          data_o_out2;
   logic                                  data_val_o_out2;
-
-  if(WIDTH != 1)
+  
+  generate
     begin
-      bit_population_counter#(MID_VAL) counter_obj1( // left part of data
-        .clk_i(clk_i),
-        .srst_i(srst_i),
-        .data_i(data_i_input[MID_VAL - 1:0]),
-        .data_val_i(data_val_i),
-        .data_o(data_o_out1),
-        .data_val_o(data_val_o_out1)
-      );
+      if(WIDTH != 1)
+        begin
+          bit_population_counter#(MID_VAL) counter_obj1( // left part of data
+            .clk_i(clk_i),
+            .srst_i(srst_i),
+            .data_i(data_i_input[MID_VAL - 1:0]),
+            .data_val_i(data_val_i),
+            .data_o(data_o_out1),
+            .data_val_o(data_val_o_out1)
+          );
 
-      bit_population_counter#(MID_VAL) counter_obj2(  // right part of data
-        .clk_i(clk_i),
-        .srst_i(srst_i),
-        .data_i(data_i_input[(REAL_LENGTH-1):MID_VAL]),
-        .data_val_i(data_val_i),
-        .data_o(data_o_out2),
-        .data_val_o(data_val_o_out2)
-      );
+          bit_population_counter#(MID_VAL) counter_obj2(  // right part of data
+            .clk_i(clk_i),
+            .srst_i(srst_i),
+            .data_i(data_i_input[(REAL_LENGTH-1):MID_VAL]),
+            .data_val_i(data_val_i),
+            .data_o(data_o_out2),
+            .data_val_o(data_val_o_out2)
+          );
+        end
     end
+  endgenerate
 
   always_comb
     begin
