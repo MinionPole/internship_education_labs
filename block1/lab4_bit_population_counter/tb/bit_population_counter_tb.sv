@@ -24,7 +24,7 @@ module bit_population_counter_tb #(
   default clocking cb @( posedge clk );
   endclocking
 
-  function automatic logic [(WIDTH-1):0] get_how_many_one(input logic [(WIDTH-1):0] local_val);
+  function automatic logic [$clog2(WIDTH) + 1:0] get_how_many_one(input logic [(WIDTH-1):0] local_val);
     return $countones(local_val);
   endfunction
 
@@ -70,7 +70,7 @@ module bit_population_counter_tb #(
                 $stop();
               end
             reference_val = get_how_many_one(input_data);
-            //$display("start test with data %b, ref val is %b", input_data, reference_val);
+            $display("start test with data %b, ref val is %b", input_data, reference_val);
 
             if(!(data_o === reference_val))
               begin

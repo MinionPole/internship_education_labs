@@ -17,32 +17,38 @@ module bit_population_counter #(
   logic [1:0][$clog2(MID_VAL) + 1:0]          inner_module_data_outs = '0;
   logic [1:0]                                 inner_module_valid_data_outs = '0;
   
-  genvar gen_ind;
+
   generate
     begin
       if(WIDTH != 1)
         begin
-          for( gen_ind = 0; gen_ind < 2; gen_ind = gen_ind + 1 )
-            begin : counter_loop
-              if(WIDTH % 2 == 1)
-                bit_population_counter#(MID_VAL) counter_obj1( // left part of data
-                  .clk_i(clk_i),
-                  .srst_i(srst_i),
-                  .data_i({ {(MID_VAL - WIDTH_MID_VAL - 1){1'b0}} , data_i[WIDTH_MID_VAL * (gen_ind + 1): WIDTH_MID_VAL * gen_ind]}),
-                  .data_val_i(data_val_i),
-                  .data_o(inner_module_data_outs[gen_ind]),
-                  .data_val_o(inner_module_valid_data_outs[gen_ind])
-                );
-              else
-                bit_population_counter#(MID_VAL) counter_obj1( // left part of data
-                  .clk_i(clk_i),
-                  .srst_i(srst_i),
-                  .data_i({{(MID_VAL - WIDTH_MID_VAL){1'b0}}, data_i[WIDTH_MID_VAL * (gen_ind + 1) - 1: WIDTH_MID_VAL * gen_ind]}),
-                  .data_val_i(data_val_i),
-                  .data_o(inner_module_data_outs[gen_ind]),
-                  .data_val_o(inner_module_valid_data_outs[gen_ind])
-                ); 
-            end
+          bit_population_counter#(MID_VAL) counter_obj1(
+            .clk_i(clk_i),
+            .srst_i(srst_i),
+            .data_i({{(MID_VAL - WIDTH_MID_VAL){1'b0}}, data_i[WIDTH_MID_VAL - 1:0]}),
+            .data_val_i(data_val_i),
+            .data_o(inner_module_data_outs[0]),
+            .data_val_o(inner_module_valid_data_outs[0])
+          );
+
+          if(WIDTH % 2 == 0)
+            bit_population_counter#(MID_VAL) counter_obj2(
+              .clk_i(clk_i),
+              .srst_i(srst_i),
+              .data_i({{(MID_VAL - WIDTH_MID_VAL){1'b0}}, data_i[WIDTH_MID_VAL * 2 - 1: WIDTH_MID_VAL]}),
+              .data_val_i(data_val_i),
+              .data_o(inner_module_data_outs[1]),
+              .data_val_o(inner_module_valid_data_outs[1])
+            );
+          else
+            bit_population_counter#(MID_VAL) counter_obj2(
+              .clk_i(clk_i),
+              .srst_i(srst_i),
+              .data_i({{(MID_VAL - WIDTH_MID_VAL - 1){1'b0}}, data_i[WIDTH_MID_VAL * 2: WIDTH_MID_VAL]}),
+              .data_val_i(data_val_i),
+              .data_o(inner_module_data_outs[1]),
+              .data_val_o(inner_module_valid_data_outs[1])
+            );                         
         end
     end
   endgenerate
