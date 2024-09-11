@@ -12,8 +12,7 @@ module bit_population_counter #(
 
   localparam REAL_LENGTH = 1 << ($clog2(WIDTH));
   localparam MID_VAL = REAL_LENGTH / 2;
-
-  logic [1:0][(REAL_LENGTH / 2) - 1: 0] data_i_input;
+  localparam WIDTH_MID_VAL = WIDTH / 2;
   
   logic [1:0][$clog2(MID_VAL) + 1:0]          inner_module_data_outs = '0;
   logic [1:0]                                 inner_module_valid_data_outs = '0;
@@ -25,23 +24,28 @@ module bit_population_counter #(
         begin
           for( gen_ind = 0; gen_ind < 2; gen_ind = gen_ind + 1 )
             begin : counter_loop
-              bit_population_counter#(MID_VAL) counter_obj1( // left part of data
-                .clk_i(clk_i),
-                .srst_i(srst_i),
-                .data_i(data_i_input[gen_ind]),
-                .data_val_i(data_val_i),
-                .data_o(inner_module_data_outs[gen_ind]),
-                .data_val_o(inner_module_valid_data_outs[gen_ind])
-              );              
+              if(WIDTH % 2 == 1)
+                bit_population_counter#(MID_VAL) counter_obj1( // left part of data
+                  .clk_i(clk_i),
+                  .srst_i(srst_i),
+                  .data_i({ {(MID_VAL - WIDTH_MID_VAL - 1){1'b0}} , data_i[WIDTH_MID_VAL * (gen_ind + 1): WIDTH_MID_VAL * gen_ind]}),
+                  .data_val_i(data_val_i),
+                  .data_o(inner_module_data_outs[gen_ind]),
+                  .data_val_o(inner_module_valid_data_outs[gen_ind])
+                );
+              else
+                bit_population_counter#(MID_VAL) counter_obj1( // left part of data
+                  .clk_i(clk_i),
+                  .srst_i(srst_i),
+                  .data_i({{(MID_VAL - WIDTH_MID_VAL){1'b0}}, data_i[WIDTH_MID_VAL * (gen_ind + 1) - 1: WIDTH_MID_VAL * gen_ind]}),
+                  .data_val_i(data_val_i),
+                  .data_o(inner_module_data_outs[gen_ind]),
+                  .data_val_o(inner_module_valid_data_outs[gen_ind])
+                ); 
             end
         end
     end
   endgenerate
-
-  always_comb
-    begin
-      data_i_input = (data_val_i == 1) ? data_i : '0;
-    end
 
   always_ff @(posedge clk_i)
     begin

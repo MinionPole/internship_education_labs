@@ -15,7 +15,6 @@ for {set i 1} {$i <= 20} {incr i} {
   run -all
   quit -sim
 }
-
 vsim -novopt -gWIDTH=50 bit_population_counter_tb
 add log -r /*
 add wave /bit_population_counter_tb/clk
