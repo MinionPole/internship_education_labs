@@ -39,7 +39,11 @@ module bit_population_counter_tb #(
     automatic int time_to_ans;
     time_to_ans = 0;
     if(rand_data_flag)
-      input_data = $urandom();
+      for(int i = 0;i <= WIDTH / 32;i++)
+        begin
+          input_data = input_data << 32;
+          input_data[31:0] = $urandom();
+        end
 
     data <= input_data;
     data_val_i <= 1;
