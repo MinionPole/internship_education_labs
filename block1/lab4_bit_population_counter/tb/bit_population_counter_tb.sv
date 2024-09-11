@@ -25,11 +25,7 @@ module bit_population_counter_tb #(
   endclocking
 
   function automatic logic [(WIDTH-1):0] get_how_many_one(input logic [(WIDTH-1):0] local_val);
-    logic [(WIDTH-1):0] ret = 0;
-    for(int i = 0; i < WIDTH;i++)
-      if(local_val[i] == 1)
-        ret = ret + 1;
-    return ret;
+    return $countones(local_val);
   endfunction
 
   task generate_value(
