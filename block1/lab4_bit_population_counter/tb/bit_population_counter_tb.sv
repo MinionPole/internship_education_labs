@@ -34,7 +34,9 @@ module bit_population_counter_tb #(
 
   task generate_value(
     logic [(WIDTH-1):0] input_data,
-    logic rand_data_flag
+    logic rand_data_flag,
+    int delay,
+    logic rand_delay_flag
   );
     automatic int time_to_ans;
     time_to_ans = 0;
@@ -51,11 +53,10 @@ module bit_population_counter_tb #(
     mbx.put(input_data);
     ##1;
     data_val_i <= 0;
-    while(!data_val_o)
-      begin
-        time_to_ans = time_to_ans + 1;
-        ##1;
-      end
+    if(rand_delay_flag)
+      delay = ($urandom() % 20);
+    for(int i = 0; i < delay;i++)
+      ##1;
     //$display("clk to get value %d", time_to_ans);
   endtask
 
@@ -109,9 +110,11 @@ module bit_population_counter_tb #(
         check_value();
       join_none
 
-      generate_value('0, 0);
-      generate_value('1, 0);
-      repeat(100) generate_value('0, 1);
+      generate_value('0, 0, 0, 0);
+      generate_value('1, 0, 0, 0);
+      repeat(100) generate_value('0, 1, 0, 0);
+      repeat(100) generate_value('0, 1, 10, 1);
+      repeat(100) generate_value('0, 1, 20, 1);
       ##40;
       if( mbx.num() != 0 )
         begin
