@@ -1,5 +1,5 @@
 module bit_population_counter #(
-  parameter WIDTH = 3
+  parameter WIDTH = 32
 )(
   input                               clk_i,
   input                               srst_i,
@@ -13,34 +13,27 @@ module bit_population_counter #(
   localparam REAL_LENGTH = 1 << ($clog2(WIDTH));
   localparam MID_VAL = REAL_LENGTH / 2;
 
-  logic [REAL_LENGTH - 1: 0] data_i_input;
+  logic [1:0][(REAL_LENGTH / 2) - 1: 0] data_i_input;
   
-  logic [$clog2(MID_VAL) + 1:0]          data_o_out1;
-  logic                                  data_val_o_out1;
-  logic [$clog2(MID_VAL) + 1:0]          data_o_out2;
-  logic                                  data_val_o_out2;
+  logic [1:0][$clog2(MID_VAL) + 1:0]          inner_module_data_outs = '0;
+  logic [1:0]                                 inner_module_valid_data_outs = '0;
   
+  genvar gen_ind;
   generate
     begin
       if(WIDTH != 1)
         begin
-          bit_population_counter#(MID_VAL) counter_obj1( // left part of data
-            .clk_i(clk_i),
-            .srst_i(srst_i),
-            .data_i(data_i_input[MID_VAL - 1:0]),
-            .data_val_i(data_val_i),
-            .data_o(data_o_out1),
-            .data_val_o(data_val_o_out1)
-          );
-
-          bit_population_counter#(MID_VAL) counter_obj2(  // right part of data
-            .clk_i(clk_i),
-            .srst_i(srst_i),
-            .data_i(data_i_input[(REAL_LENGTH-1):MID_VAL]),
-            .data_val_i(data_val_i),
-            .data_o(data_o_out2),
-            .data_val_o(data_val_o_out2)
-          );
+          for( gen_ind = 0; gen_ind < 2; gen_ind = gen_ind + 1 )
+            begin : counter_loop
+              bit_population_counter#(MID_VAL) counter_obj1( // left part of data
+                .clk_i(clk_i),
+                .srst_i(srst_i),
+                .data_i(data_i_input[gen_ind]),
+                .data_val_i(data_val_i),
+                .data_o(inner_module_data_outs[gen_ind]),
+                .data_val_o(inner_module_valid_data_outs[gen_ind])
+              );              
+            end
         end
     end
   endgenerate
@@ -66,7 +59,7 @@ module bit_population_counter #(
         else
           begin
             //$display("width = %d, data_val_left = %b, data_val_right = %b", WIDTH, data_val_o_out1, data_val_o_out2);
-            if(data_val_o_out1 && data_val_o_out2)
+            if(inner_module_valid_data_outs[0] && inner_module_valid_data_outs[1])
               data_val_o <= 1;
             else
               data_val_o <= '0;
@@ -88,8 +81,8 @@ module bit_population_counter #(
         else
           begin
             //$display("width = %d, data_val_left = %b, data_val_right = %b", WIDTH, data_val_o_out1, data_val_o_out2);
-            if(data_val_o_out1 && data_val_o_out2)
-              data_o <= (data_o_out1 + data_o_out2);
+            if(inner_module_valid_data_outs[0] && inner_module_valid_data_outs[1])
+              data_o <= (inner_module_data_outs[0] + inner_module_data_outs[1]);
             else
               data_o <= '0;
           end

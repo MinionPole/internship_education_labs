@@ -1,5 +1,5 @@
 module bit_population_counter_tb #(
-  parameter WIDTH = 3
+  parameter WIDTH = 32
 );
 
   logic                       clk;
@@ -118,6 +118,7 @@ module bit_population_counter_tb #(
           $error("Have bits in referance queues!");
           $stop();
         end
+      $display("all tests success");
       $stop();
     end
 

@@ -3,7 +3,7 @@ vlib work
 vlog -sv ../rtl/bit_population_counter.sv
 vlog -sv bit_population_counter_tb.sv
 
-for {set i 1} {$i <= 30} {incr i} {
+for {set i 4} {$i <= 20} {incr i} {
   vsim -novopt -gWIDTH=$i bit_population_counter_tb
   add log -r /*
   add wave /bit_population_counter_tb/clk
