@@ -70,7 +70,7 @@ module bit_population_counter_tb #(
                 $stop();
               end
             reference_val = get_how_many_one(input_data);
-            $display("start test with data %b, ref val is %b", input_data, reference_val);
+            //$display("start test with data %b, ref val is %b", input_data, reference_val);
 
             if(!(data_o === reference_val))
               begin

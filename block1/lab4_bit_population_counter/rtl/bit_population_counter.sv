@@ -1,12 +1,12 @@
 module bit_population_counter #(
-  parameter WIDTH = 32
+  parameter WIDTH = 63
 )(
   input                               clk_i,
   input                               srst_i,
   input        [(WIDTH-1):0]          data_i,
   input                               data_val_i,
 
-  output logic [$clog2(WIDTH) + 1:0]  data_o,
+  output logic [$clog2(WIDTH):0]  data_o,
   output logic                        data_val_o
 );
 
@@ -14,9 +14,16 @@ module bit_population_counter #(
   localparam MID_VAL = REAL_LENGTH / 2;
   localparam WIDTH_MID_VAL = WIDTH / 2;
   
-  logic [1:0][$clog2(MID_VAL) + 1:0]          inner_module_data_outs = '0;
-  logic [1:0]                                 inner_module_valid_data_outs = '0;
-  
+  logic [1:0][$clog2(MID_VAL):0]              inner_module_data_outs;
+  logic [1:0]                                 inner_module_valid_data_outs;
+
+  initial
+    begin
+      inner_module_data_outs[0] <= 'x; 
+      inner_module_data_outs[1] <= 'x; 
+
+      inner_module_valid_data_outs <= 'x; 
+    end
 
   generate
     begin

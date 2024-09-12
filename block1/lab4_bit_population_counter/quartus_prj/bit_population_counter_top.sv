@@ -6,14 +6,14 @@ module bit_population_counter_top#(
   input  [(WIDTH-1):0]          data_i,
   input                         data_val_i,
 
-  output [$clog2(WIDTH) + 1:0]  data_o,
+  output [$clog2(WIDTH):0]  data_o,
   output                        data_val_o
 );
   logic                         srst_i_reg;
   logic  [(WIDTH-1):0]          data_i_reg;
   logic                         data_val_i_reg;
 
-  logic [$clog2(WIDTH) + 1:0]  data_o_reg;
+  logic [$clog2(WIDTH):0]  data_o_reg;
   logic                        data_val_o_reg;
 
   always_ff @(posedge clk_150mhz)
