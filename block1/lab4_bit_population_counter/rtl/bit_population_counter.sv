@@ -17,14 +17,6 @@ module bit_population_counter #(
   logic [1:0][$clog2(MID_VAL):0]              inner_module_data_outs;
   logic [1:0]                                 inner_module_valid_data_outs;
 
-  initial
-    begin
-      inner_module_data_outs[0] <= 'x; 
-      inner_module_data_outs[1] <= 'x; 
-
-      inner_module_valid_data_outs <= 'x; 
-    end
-
   generate
     begin
       if(WIDTH != 1)
