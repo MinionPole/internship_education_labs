@@ -17,10 +17,13 @@ module bit_population_counter #(
   logic [1:0][$clog2(MID_VAL):0]              inner_module_data_outs;
   logic [1:0]                                 inner_module_valid_data_outs;
 
+
+
   generate
     begin
       if(WIDTH != 1)
         begin
+
           bit_population_counter#(MID_VAL) counter_obj1(
             .clk_i(clk_i),
             .srst_i(srst_i),
@@ -48,6 +51,12 @@ module bit_population_counter #(
               .data_o(inner_module_data_outs[1]),
               .data_val_o(inner_module_valid_data_outs[1])
             );                         
+        end
+      else
+        begin
+          assign inner_module_data_outs[0] = 'x;
+          assign inner_module_data_outs[1] = 'x;
+          assign inner_module_valid_data_outs = 'x;
         end
     end
   endgenerate
