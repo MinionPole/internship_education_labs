@@ -106,10 +106,10 @@ module bit_population_counter_tb #(
         check_value();
       join_none
 
-      //generate_value('0, 0, 0, 0);
+      generate_value('0, 0, 0, 0);
       generate_value('1, 0, 0, 0);
-      //repeat(10) generate_value('0, 1, 0, 0);
-      //repeat(100) generate_value('0, 1, 10, 1);
+      //repeat(100) generate_value('0, 1, 0, 0);
+      repeat(100) generate_value('0, 1, 10, 1);
       //repeat(100) generate_value('0, 1, 20, 1);
       ##6;
       if( mbx.num() != 0 )

@@ -17,6 +17,7 @@ logic [WIDTH-1:0][$clog2(WIDTH):0] cnt_low_level;
 logic [$clog2(LOWLEVELSIZE):0][WIDTH-1:0][$clog2(WIDTH):0] cnt;
 logic [$clog2(LOWLEVELSIZE):0][$clog2(LOWLEVELSIZE):0] level_sizes;
 
+
 initial
   begin
     level_sizes[0] = LOWLEVELSIZE;
@@ -54,18 +55,21 @@ always_comb
 		  cnt_low_level[i] = '0;
 	    for(int j = 0; j < SLICE && i * SLICE + j < WIDTH;j++)
 		    cnt_low_level[i] = cnt_low_level[i] + data_i[i * SLICE + j];
-      $display("i = %d val = %b", i, cnt_low_level[i]);
+      //$display("i = %d val = %b", i, cnt_low_level[i]);
 		end
   end
 
 always_ff @( posedge clk_i )
   data_o <= cnt[$clog2(LOWLEVELSIZE)][0];
 
+logic [$clog2(LOWLEVELSIZE)+1:0] valid_delay;
 
-always_ff @( posedge clk_i )
+always_ff @(posedge clk_i)
   if( srst_i )
-    data_val_o <= 1'b0;
+    valid_delay <= '0;
   else
-    data_val_o <= data_val_i;
+    valid_delay <= {valid_delay[$clog2(LOWLEVELSIZE):0],data_val_i};
+
+assign data_val_o = valid_delay[$clog2(LOWLEVELSIZE)+1];
 
 endmodule
