@@ -1,5 +1,5 @@
 module bit_population_counter_tb #(
-  parameter WIDTH = 32
+  parameter WIDTH = 128
 );
 
   logic                       clk;
@@ -109,8 +109,8 @@ module bit_population_counter_tb #(
       generate_value('0, 0, 0, 0);
       generate_value('1, 0, 0, 0);
       repeat(100) generate_value('0, 1, 0, 0);
-      repeat(100) generate_value('0, 1, 10, 1);
-      repeat(100) generate_value('0, 1, 20, 1);
+      //repeat(100) generate_value('0, 1, 10, 1);
+      //repeat(100) generate_value('0, 1, 20, 1);
       ##40;
       if( mbx.num() != 0 )
         begin

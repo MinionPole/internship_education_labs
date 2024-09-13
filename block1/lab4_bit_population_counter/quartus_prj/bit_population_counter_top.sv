@@ -1,5 +1,5 @@
 module bit_population_counter_top#(
-  parameter WIDTH = 32
+  parameter WIDTH = 128
 )(
   input                         clk_150mhz,
   input                         srst_i,
