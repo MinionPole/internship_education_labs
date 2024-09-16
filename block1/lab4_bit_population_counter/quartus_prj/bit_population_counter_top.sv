@@ -26,7 +26,9 @@ module bit_population_counter_top#(
       data_val_o           <= data_val_o_reg;
     end
 
-  bit_population_counter#(WIDTH) priority_encoder_obj(
+  bit_population_counter#(
+    WIDTH
+  ) priority_encoder_obj (
     .clk_i(clk_150mhz),
     .srst_i(srst_i_reg),
     .data_i(data_i_reg),

@@ -10,7 +10,9 @@ module bit_population_counter_tb #(
   logic [$clog2(WIDTH) + 1:0] data_o;
   logic                       data_val_o;
 
-  bit_population_counter#(WIDTH) priority_encoder_obj(
+  bit_population_counter#(
+    WIDTH
+  ) priority_encoder_obj(
     .clk_i(clk),
     .srst_i(srst),
     .data_i(data),
