@@ -20,6 +20,6 @@ for {set i 1} {$i <= 30} {incr i} {
   runtest $i
 }
 
-runtest [50]
+runtest 50
 
-runtest [150]
+runtest 150
