@@ -24,9 +24,6 @@ module bit_population_counter_tb #(
   default clocking cb @( posedge clk );
   endclocking
 
-  function automatic logic [$clog2(WIDTH) + 1:0] get_how_many_one(input logic [(WIDTH-1):0] local_val);
-    return $countones(local_val);
-  endfunction
 
   task generate_value(
     logic [(WIDTH-1):0] input_data,
@@ -35,24 +32,24 @@ module bit_population_counter_tb #(
     logic rand_delay_flag
   );
     automatic int time_to_ans;
+    ##1
     time_to_ans = 0;
+    data_val_i <= 0;
+    if(rand_delay_flag)
+      delay = ($urandom() % 20);
+    for(int i = 0; i < delay;i++)
+      ##1;
+
     if(rand_data_flag)
       for(int i = 0;i <= WIDTH / 32;i++)
         begin
           input_data = input_data << 32;
           input_data[31:0] = $urandom();
         end
-
     data <= input_data;
     data_val_i <= 1;
     //$display("i put %b", input_data);
     mbx.put(input_data);
-    ##1;
-    data_val_i <= 0;
-    if(rand_delay_flag)
-      delay = ($urandom() % 20);
-    for(int i = 0; i < delay;i++)
-      ##1;
     //$display("clk to get value %d", time_to_ans);
   endtask
 
@@ -108,10 +105,13 @@ module bit_population_counter_tb #(
 
       generate_value('0, 0, 0, 0);
       generate_value('1, 0, 0, 0);
-      //repeat(100) generate_value('0, 1, 0, 0);
+      repeat(100) generate_value('0, 1, 0, 0);
       repeat(100) generate_value('0, 1, 10, 1);
       //repeat(100) generate_value('0, 1, 20, 1);
-      ##6;
+      ##1
+      // stop send data
+      data_val_i <= 0;
+      ##40;
       if( mbx.num() != 0 )
         begin
           $error("Have bits in referance queues!");
