@@ -11,22 +11,22 @@ module bit_population_counter #(
   output logic                        data_val_o
 );
 
-  localparam SLICE_CNT = (WIDTH + SLICE - 1) / SLICE;
-  localparam LOG_SLICE_CNT = $clog2(SLICE_CNT);
+  localparam                                          SLICE_CNT     = (WIDTH + SLICE - 1) / SLICE;
+  localparam                                          LOG_SLICE_CNT = $clog2(SLICE_CNT);
+  localparam logic [LOG_SLICE_CNT:0][LOG_SLICE_CNT:0] LEVEL_SIZES   = calculate_level_sizes();
 
   logic [WIDTH-1:0][$clog2(WIDTH):0] cnt_low_level;
   logic [LOG_SLICE_CNT:0][WIDTH-1:0][$clog2(WIDTH):0] cnt;
-  localparam logic [LOG_SLICE_CNT:0][LOG_SLICE_CNT:0] level_sizes = calculate_level_sizes();
+
 
   logic [LOG_SLICE_CNT+1:0] valid_delay;
   assign data_val_o = valid_delay[LOG_SLICE_CNT+1];
 
 
-  // Функция для вычисления level_sizes
   function logic [LOG_SLICE_CNT:0][LOG_SLICE_CNT:0] calculate_level_sizes();
     logic [LOG_SLICE_CNT:0][LOG_SLICE_CNT:0] sizes;
     sizes[0] = SLICE_CNT;  
-    for (int top_level_ind = 1; top_level_ind <= LOG_SLICE_CNT; top_level_ind++)
+    for( int top_level_ind = 1; top_level_ind <= LOG_SLICE_CNT; top_level_ind++ )
       begin
         sizes[top_level_ind] = (sizes[top_level_ind - 1] + 1) / 2;
       end
@@ -36,11 +36,11 @@ module bit_population_counter #(
 
   always_ff @( posedge clk_i )
     begin
-     for(int top_level_ind = 1; top_level_ind <= LOG_SLICE_CNT;top_level_ind++)
+     for( int top_level_ind = 1; top_level_ind <= LOG_SLICE_CNT; top_level_ind++ )
        begin
-       for(int i = 0; i < level_sizes[top_level_ind];i++)
+       for( int i = 0; i < LEVEL_SIZES[top_level_ind]; i++ )
           begin
-              if(i * 2 + 1 < level_sizes[top_level_ind - 1])
+              if( i * 2 + 1 < LEVEL_SIZES[top_level_ind - 1] )
                 cnt[top_level_ind][i] <= cnt[top_level_ind - 1][i * 2 + 1] + cnt[top_level_ind - 1][i * 2];
               else
                 cnt[top_level_ind][i] <= cnt[top_level_ind - 1][i * 2];
@@ -56,10 +56,10 @@ module bit_population_counter #(
 
   always_comb
     begin
-      for(int i = 0; i < SLICE_CNT;i++)
+      for( int i = 0; i < SLICE_CNT; i++ )
       begin
         cnt_low_level[i] = '0;
-        for(int j = 0; j < SLICE && i * SLICE + j < WIDTH;j++)
+        for( int j = 0; j < SLICE && i * SLICE + j < WIDTH; j++ )
           cnt_low_level[i] = cnt_low_level[i] + data_i[i * SLICE + j];
         //$display("i = %d val = %b", i, cnt_low_level[i]);
       end
@@ -69,7 +69,7 @@ module bit_population_counter #(
     data_o <= cnt[LOG_SLICE_CNT][0];
 
 
-  always_ff @(posedge clk_i)
+  always_ff @( posedge clk_i )
     if( srst_i )
       valid_delay <= '0;
     else

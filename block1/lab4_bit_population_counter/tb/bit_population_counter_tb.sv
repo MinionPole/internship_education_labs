@@ -11,7 +11,7 @@ module bit_population_counter_tb #(
   logic                       data_val_o;
 
   bit_population_counter#(
-    WIDTH
+    .WIDTH (WIDTH)
   ) priority_encoder_obj(
     .clk_i(clk),
     .srst_i(srst),
@@ -37,13 +37,13 @@ module bit_population_counter_tb #(
     ##1
     time_to_ans = 0;
     data_val_i <= 0;
-    if(rand_delay_flag)
+    if( rand_delay_flag )
       delay = ($urandom() % 20);
-    for(int i = 0; i < delay;i++)
+    for( int i = 0; i < delay; i++ )
       ##1;
 
-    if(rand_data_flag)
-      for(int i = 0;i <= WIDTH / 32;i++)
+    if( rand_data_flag )
+      for( int i = 0; i <= WIDTH / 32; i++ )
         begin
           input_data = input_data << 32;
           input_data[31:0] = $urandom();
@@ -61,9 +61,9 @@ module bit_population_counter_tb #(
     logic [(WIDTH-1):0] input_data;
     forever
       begin
-        if(data_val_o)
+        if( data_val_o )
           begin
-            if(!mbx.try_get(input_data))
+            if( !mbx.try_get(input_data) )
               begin
                 $error("try to get value from empty, queue, check data_val_o wave");
                 $stop();
@@ -71,7 +71,7 @@ module bit_population_counter_tb #(
             reference_val = $countones(input_data);
             //$display("start test with data %b, ref val is %b", input_data, reference_val);
 
-            if(!(data_o === reference_val))
+            if( !(data_o === reference_val) )
               begin
                 $error("dismatch right value get %b, requires %b", data_o, reference_val);
                 $stop();
