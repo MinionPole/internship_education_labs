@@ -16,7 +16,7 @@ localparam LOG_SLICE_CNT = $clog2(SLICE_CNT);
 
 logic [WIDTH-1:0][$clog2(WIDTH):0] cnt_low_level;
 logic [LOG_SLICE_CNT:0][WIDTH-1:0][$clog2(WIDTH):0] cnt;
-logic [LOG_SLICE_CNT:0][LOG_SLICE_CNT:0] level_sizes;
+logic [LOG_SLICE_CNT:0][LOG_SLICE_CNT:0] level_sizes = '0;
 
 
 initial
