@@ -15,7 +15,7 @@ module bit_population_counter #(
   localparam                                          LOG_SLICE_CNT = $clog2(SLICE_CNT);
   localparam logic [LOG_SLICE_CNT:0][LOG_SLICE_CNT:0] LEVEL_SIZES   = calculate_level_sizes();
 
-  logic [WIDTH-1:0][$clog2(WIDTH):0] cnt_low_level;
+  logic [WIDTH-1:0][$clog2(WIDTH):0]                  cnt_low_level;
   logic [LOG_SLICE_CNT:0][WIDTH-1:0][$clog2(WIDTH):0] cnt;
 
 

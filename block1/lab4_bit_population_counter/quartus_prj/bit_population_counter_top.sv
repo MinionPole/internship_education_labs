@@ -13,8 +13,8 @@ module bit_population_counter_top#(
   logic  [(WIDTH-1):0]          data_i_reg;
   logic                         data_val_i_reg;
 
-  logic  [$clog2(WIDTH):0]     data_o_reg;
-  logic                        data_val_o_reg;
+  logic  [$clog2(WIDTH):0]      data_o_reg;
+  logic                         data_val_o_reg;
 
   always_ff @( posedge clk_150mhz )
     begin

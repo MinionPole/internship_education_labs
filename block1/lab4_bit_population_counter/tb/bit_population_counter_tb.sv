@@ -11,32 +11,29 @@ module bit_population_counter_tb #(
   logic                       data_val_o;
 
   bit_population_counter#(
-    .WIDTH (WIDTH)
+    .WIDTH       (WIDTH)
   ) priority_encoder_obj(
-    .clk_i(clk),
-    .srst_i(srst),
-    .data_i(data),
-    .data_val_i(data_val_i),
+    .clk_i       (clk),
+    .srst_i      (srst),
+    .data_i      (data),
+    .data_val_i  (data_val_i),
 
-    .data_o(data_o),
-    .data_val_o(data_val_o)
+    .data_o      (data_o),
+    .data_val_o  (data_val_o)
   );
 
   mailbox mbx;
   default clocking cb @( posedge clk );
   endclocking
 
-
   task generate_value(
     logic [(WIDTH-1):0] input_data,
-    logic rand_data_flag,
-    int delay,
-    logic rand_delay_flag
+    logic               rand_data_flag,
+    int                 delay,
+    logic               rand_delay_flag
   );
-    automatic int time_to_ans;
     ##1
-    time_to_ans = 0;
-    data_val_i <= 0;
+    data_val_i  <= 0;
     if( rand_delay_flag )
       delay = ($urandom() % 20);
     for( int i = 0; i < delay; i++ )
@@ -45,20 +42,18 @@ module bit_population_counter_tb #(
     if( rand_data_flag )
       for( int i = 0; i <= WIDTH / 32; i++ )
         begin
-          input_data = input_data << 32;
+          input_data       = input_data << 32;
           input_data[31:0] = $urandom();
         end
-    data <= input_data;
+    data       <= input_data;
     data_val_i <= 1;
     //$display("i put %b", input_data);
     mbx.put(input_data);
-    //$display("clk to get value %d", time_to_ans);
   endtask
-
 
   task check_value();
     logic [$clog2(WIDTH) + 1:0] reference_val;
-    logic [(WIDTH-1):0] input_data;
+    logic [(WIDTH-1):0]         input_data;
     forever
       begin
         if( data_val_o )
