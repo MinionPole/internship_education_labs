@@ -16,18 +16,20 @@ localparam LOG_SLICE_CNT = $clog2(SLICE_CNT);
 
 logic [WIDTH-1:0][$clog2(WIDTH):0] cnt_low_level;
 logic [LOG_SLICE_CNT:0][WIDTH-1:0][$clog2(WIDTH):0] cnt;
-logic [LOG_SLICE_CNT:0][LOG_SLICE_CNT:0] level_sizes = '0;
+localparam logic [LOG_SLICE_CNT:0][LOG_SLICE_CNT:0] level_sizes = calculate_level_sizes();
 
 
-initial
-  begin
-    level_sizes[0] = SLICE_CNT;
-    for(int top_level_ind = 1; top_level_ind <= LOG_SLICE_CNT;top_level_ind++)
-	    begin
-        level_sizes[top_level_ind] = (level_sizes[top_level_ind - 1] + 1) / 2;
-		    //$display("top_level_ind = %d, value is = %d", top_level_ind, level_sizes[top_level_ind]);
-		  end
-  end
+  // Функция для вычисления level_sizes
+function logic [LOG_SLICE_CNT:0][LOG_SLICE_CNT:0] calculate_level_sizes();
+  logic [LOG_SLICE_CNT:0][LOG_SLICE_CNT:0] sizes;
+  sizes[0] = SLICE_CNT;  
+  for (int top_level_ind = 1; top_level_ind <= LOG_SLICE_CNT; top_level_ind++)
+    begin
+      sizes[top_level_ind] = (sizes[top_level_ind - 1] + 1) / 2;
+    end
+  return sizes;
+endfunction
+
 
 always_ff @( posedge clk_i )
   begin
