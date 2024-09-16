@@ -11,17 +11,18 @@ module bit_population_counter #(
   output logic                        data_val_o
 );
 
-localparam LOWLEVELSIZE = (WIDTH + SLICE - 1) / SLICE;
+localparam SLICE_CNT = (WIDTH + SLICE - 1) / SLICE;
+localparam LOG_SLICE_CNT = $clog2(SLICE_CNT);
 
 logic [WIDTH-1:0][$clog2(WIDTH):0] cnt_low_level;
-logic [$clog2(LOWLEVELSIZE):0][WIDTH-1:0][$clog2(WIDTH):0] cnt;
-logic [$clog2(LOWLEVELSIZE):0][$clog2(LOWLEVELSIZE):0] level_sizes;
+logic [LOG_SLICE_CNT:0][WIDTH-1:0][$clog2(WIDTH):0] cnt;
+logic [LOG_SLICE_CNT:0][LOG_SLICE_CNT:0] level_sizes;
 
 
 initial
   begin
-    level_sizes[0] = LOWLEVELSIZE;
-    for(int top_level_ind = 1; top_level_ind <= $clog2(LOWLEVELSIZE);top_level_ind++)
+    level_sizes[0] = SLICE_CNT;
+    for(int top_level_ind = 1; top_level_ind <= LOG_SLICE_CNT;top_level_ind++)
 	    begin
         level_sizes[top_level_ind] = (level_sizes[top_level_ind - 1] + 1) / 2;
 		    //$display("top_level_ind = %d, value is = %d", top_level_ind, level_sizes[top_level_ind]);
@@ -30,7 +31,7 @@ initial
 
 always_ff @( posedge clk_i )
   begin
-	 for(int top_level_ind = 1; top_level_ind <= $clog2(LOWLEVELSIZE);top_level_ind++)
+	 for(int top_level_ind = 1; top_level_ind <= LOG_SLICE_CNT;top_level_ind++)
 	   begin
 		  for(int i = 0; i < level_sizes[top_level_ind];i++)
 		    begin
@@ -50,7 +51,7 @@ always_ff @( posedge clk_i )
 
 always_comb
   begin
-    for(int i = 0; i < LOWLEVELSIZE;i++)
+    for(int i = 0; i < SLICE_CNT;i++)
 	  begin
 		  cnt_low_level[i] = '0;
 	    for(int j = 0; j < SLICE && i * SLICE + j < WIDTH;j++)
@@ -60,16 +61,16 @@ always_comb
   end
 
 always_ff @( posedge clk_i )
-  data_o <= cnt[$clog2(LOWLEVELSIZE)][0];
+  data_o <= cnt[LOG_SLICE_CNT][0];
 
-logic [$clog2(LOWLEVELSIZE)+1:0] valid_delay;
+logic [LOG_SLICE_CNT+1:0] valid_delay;
 
 always_ff @(posedge clk_i)
   if( srst_i )
     valid_delay <= '0;
   else
-    valid_delay <= {valid_delay[$clog2(LOWLEVELSIZE):0],data_val_i};
+    valid_delay <= {valid_delay[LOG_SLICE_CNT:0],data_val_i};
 
-assign data_val_o = valid_delay[$clog2(LOWLEVELSIZE)+1];
+assign data_val_o = valid_delay[LOG_SLICE_CNT+1];
 
 endmodule
