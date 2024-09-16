@@ -22,7 +22,6 @@ module bit_population_counter #(
   logic [LOG_SLICE_CNT+1:0] valid_delay;
   assign data_val_o = valid_delay[LOG_SLICE_CNT+1];
 
-
   function logic [LOG_SLICE_CNT:0][LOG_SLICE_CNT:0] calculate_level_sizes();
     logic [LOG_SLICE_CNT:0][LOG_SLICE_CNT:0] sizes;
     sizes[0] = SLICE_CNT;  
@@ -32,7 +31,6 @@ module bit_population_counter #(
       end
     return sizes;
   endfunction
-
 
   always_ff @( posedge clk_i )
     begin
@@ -47,7 +45,6 @@ module bit_population_counter #(
          end
       end
     end
-
 
   always_ff @( posedge clk_i )
     begin
@@ -67,7 +64,6 @@ module bit_population_counter #(
 
   always_ff @( posedge clk_i )
     data_o <= cnt[LOG_SLICE_CNT][0];
-
 
   always_ff @( posedge clk_i )
     if( srst_i )
