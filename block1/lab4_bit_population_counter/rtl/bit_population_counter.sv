@@ -3,6 +3,7 @@ module bit_population_counter #(
   parameter SLICE = 6
 )(
   input                               clk_i,
+
   input                               srst_i,
   input        [(WIDTH-1):0]          data_i,
   input                               data_val_i,

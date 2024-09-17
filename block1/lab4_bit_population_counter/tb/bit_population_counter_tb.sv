@@ -3,26 +3,29 @@ module bit_population_counter_tb #(
 );
 
   logic                       clk;
+  
   logic                       srst;
-  logic  [(WIDTH-1):0]        data;
+  logic [(WIDTH-1):0]         data;
   logic                       data_val_i;
 
   logic [$clog2(WIDTH) + 1:0] data_o;
   logic                       data_val_o;
 
-  bit_population_counter#(
-    .WIDTH       (WIDTH)
-  ) priority_encoder_obj(
-    .clk_i       (clk),
-    .srst_i      (srst),
-    .data_i      (data),
-    .data_val_i  (data_val_i),
+  mailbox mbx;
 
-    .data_o      (data_o),
-    .data_val_o  (data_val_o)
+  bit_population_counter#(
+    .WIDTH       (WIDTH       )
+  ) priority_encoder_obj (
+    .clk_i       (clk         ),
+    .srst_i      (srst        ),
+    .data_i      (data        ),
+    .data_val_i  (data_val_i  ),
+
+    .data_o      (data_o      ),
+    .data_val_o  (data_val_o  )
   );
 
-  mailbox mbx;
+
   default clocking cb @( posedge clk );
   endclocking
 
