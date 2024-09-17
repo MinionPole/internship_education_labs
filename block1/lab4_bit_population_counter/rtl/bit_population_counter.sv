@@ -35,16 +35,16 @@ module bit_population_counter #(
 
   always_ff @( posedge clk_i )
     begin
-     for( int top_level_ind = 1; top_level_ind <= LOG_SLICE_CNT; top_level_ind++ )
-       begin
-       for( int i = 0; i < LEVEL_SIZES[top_level_ind]; i++ )
-          begin
+      for( int top_level_ind = 1; top_level_ind <= LOG_SLICE_CNT; top_level_ind++ )
+        begin
+          for( int i = 0; i < LEVEL_SIZES[top_level_ind]; i++ )
+            begin
               if( i * 2 + 1 < LEVEL_SIZES[top_level_ind - 1] )
                 cnt[top_level_ind][i] <= cnt[top_level_ind - 1][i * 2 + 1] + cnt[top_level_ind - 1][i * 2];
               else
                 cnt[top_level_ind][i] <= cnt[top_level_ind - 1][i * 2];
-         end
-      end
+            end
+        end
     end
 
   always_ff @( posedge clk_i )
