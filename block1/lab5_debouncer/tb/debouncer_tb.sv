@@ -38,7 +38,7 @@ module debouncer_tb #(
       clk = 0;
       forever #5 clk = !clk;
     end
-  
+
   function logic check_pressed_mem();
     if(LIMIT == 1)
       return 1;
@@ -71,7 +71,7 @@ module debouncer_tb #(
                 $stop();
               end
           end
-        key_mem <= {key_mem[LIMIT-2:0], key};
+        key_mem         <= {key_mem[LIMIT-2:0]        , key};
         pressed_out_mem <= {pressed_out_mem[LIMIT-2:0], key_pressed_stb};
         ##1;
       end
