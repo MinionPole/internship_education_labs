@@ -11,7 +11,7 @@ module debouncer_tb #(
   2) we didn't get key_pressed_stb last (LIMIT - 1) tact
   */
 
-  logic [LIMIT - 1: 0] key_mem;
+  logic [LIMIT-  1: 0] key_mem;
   logic [LIMIT - 1: 0] pressed_out_mem;
 
   logic                       clk;
@@ -29,7 +29,6 @@ module debouncer_tb #(
     .key_pressed_stb_o  (key_pressed_stb)
   );
 
-
   default clocking cb @( posedge clk );
   endclocking
 
@@ -45,6 +44,7 @@ module debouncer_tb #(
     return (pressed_out_mem[LIMIT - 2:0] == '0);
   endfunction
 
+
   task generate_value(
     logic             input_data,
     logic             rand_data_flag
@@ -55,11 +55,12 @@ module debouncer_tb #(
     key <= input_data;
   endtask
 
-  task check_pressed_value();
+  task check_value();
     forever
       begin
         if(key_pressed_stb)
           begin
+            //$display("%b and %b", key_mem, pressed_out_mem);
             if(!key_mem && check_pressed_mem())
               $display("succed test");
             else
@@ -71,16 +72,6 @@ module debouncer_tb #(
                 $stop();
               end
           end
-        key_mem         <= {key_mem[LIMIT-2:0]        , key};
-        pressed_out_mem <= {pressed_out_mem[LIMIT-2:0], key_pressed_stb};
-        ##1;
-      end
-  endtask
-
-
-  task check_unpressed_value();
-    forever
-      begin
         if(!key_pressed_stb)
           begin
             if(!key_mem && check_pressed_mem())
@@ -89,24 +80,33 @@ module debouncer_tb #(
                 $stop();
               end
           end
+        key_mem         <= {key_mem[LIMIT-2:0]        , key};
+        pressed_out_mem <= {pressed_out_mem[LIMIT-2:0], key_pressed_stb};
         ##1;
       end
   endtask
 
+
   initial
     begin
-
       //$display("limit is %d", LIMIT);
 
       $display("start tb with CLK_FREQ_MHZ = %d, GLITCH_TIME_NS = %d", CLK_FREQ_MHZ, GLITCH_TIME_NS);
       fork
-        check_pressed_value();
-        check_unpressed_value();
+        check_value();
       join_none
 
-      repeat(100)  generate_value('0, 0);
-      repeat(100)  generate_value('1, 0);
+      repeat(100)          generate_value('0, 0);
+      repeat(100)          generate_value('1, 0);
       repeat(LIMIT * 1000) generate_value('0, 1);
+
+      for(int i = 0; i < 20;i++)
+        begin
+          repeat(15)        generate_value('0, 1);
+          repeat(LIMIT + 1) generate_value('0, 0);
+          repeat(15)        generate_value('0, 1);
+        end
+      //repeat(100) generate_value('0, 1);
       ##1;
       $display("success tb with CLK_FREQ_MHZ = %d, GLITCH_TIME_NS = %d", CLK_FREQ_MHZ, GLITCH_TIME_NS);
       $stop();
