@@ -52,7 +52,7 @@ module debouncer_tb #(
           ##1;
           key <= input_data[i];
         end
-    if(input_data == '0)    
+    if(input_data == '0)
       mbx.put(1);
   endtask
 

@@ -15,7 +15,7 @@ module debouncer #(
   
   synchronizer sync_obj (
     .clk          (clk_i    ),
-    .signal       (key_i      ),
+    .signal       (key_i    ),
 
     .signal_sync  (sync_out )
   );
@@ -25,9 +25,9 @@ module debouncer #(
       if( !sync_out )
         cnt <= ( cnt < LIMIT ) ? cnt + 1 : 1; 
       else
-        cnt <= 0; 
+        cnt <= 0;
     end
- 
+
   always_ff @( posedge clk_i )
     begin
       key_pressed_stb_o <= ( cnt == LIMIT ) ? 1'b1 : 1'b0;
