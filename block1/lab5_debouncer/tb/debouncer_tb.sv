@@ -99,11 +99,15 @@ module debouncer_tb #(
           repeat(20)  generate_value('0, 1);
           repeat(20)  generate_value('0, 1);
         end
-      generate_value('0 + 1'b1, 0);
-      mbx.put(1);
-      generate_value('0, 0);
-      generate_value({1'b1, {LIMIT-1{1'b0}}}, 0);
-      ##1;  
+      if(LIMIT != 1)
+        begin
+          generate_value('0 + 1'b1, 0);
+          mbx.put(1);
+          generate_value('0, 0);
+          generate_value({1'b1, {LIMIT-1{1'b0}}}, 0);
+        end
+
+      ##1;
       key <= 1;
       ##40;
       if( mbx.num() != 0 )
