@@ -11,10 +11,18 @@ module debouncer #(
   localparam int LIMIT = (CLK_FREQ_MHZ * GLITCH_TIME_NS + 999) / 1000; 
 
   int cnt = 0;
+  logic sync_out;
+  
+  synchronizer sync_obj (
+    .clk          (clk_i    ),
+    .signal       (key_i      ),
+
+    .signal_sync  (sync_out )
+  );
 
   always_ff @( posedge clk_i )
     begin
-      if( !key_i )
+      if( !sync_out )
         cnt <= ( cnt < LIMIT ) ? cnt + 1 : 1; 
       else
         cnt <= 0; 

@@ -1,6 +1,7 @@
 vlib work
 
 vlog -sv ../rtl/debouncer.sv
+vlog -sv ../rtl/synchronizer.sv
 vlog -sv debouncer_tb.sv
 
 proc runtest {i j} {
@@ -9,9 +10,8 @@ proc runtest {i j} {
   add wave /debouncer_tb/clk
   add wave /debouncer_tb/key
   add wave /debouncer_tb/key_pressed_stb
-  add wave /debouncer_tb/pressed_out_mem
-  add wave /debouncer_tb/key_mem
   add wave /debouncer_tb/debouncer_obj/cnt
+  add wave /debouncer_tb/debouncer_obj/sync_out
   run -all
 }
 

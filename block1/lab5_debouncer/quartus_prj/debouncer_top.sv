@@ -1,6 +1,6 @@
 module debouncer_top #(
-  parameter CLK_FREQ_MHZ = 200,
-  parameter GLITCH_TIME_NS = 20
+  parameter CLK_FREQ_MHZ = 150,
+  parameter GLITCH_TIME_NS = 10
 )(
   input                       clk_150mhz,
   input                       key_i,

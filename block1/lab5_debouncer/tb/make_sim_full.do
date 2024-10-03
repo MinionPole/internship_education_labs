@@ -10,6 +10,7 @@ proc runtest {i j} {
   add wave /debouncer_tb/key
   add wave /debouncer_tb/key_pressed_stb
   add wave /debouncer_tb/debouncer_obj/cnt
+  add wave /debouncer_tb/debouncer_obj/sync_out
   run -all
 }
 for {set i 10} {$i <= 500} {incr i 50} {

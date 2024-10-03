@@ -96,7 +96,7 @@ module bit_population_counter_tb #(
 
   initial
     begin
-      mbx = new();
+
       make_srst();
       fork
         check_value();

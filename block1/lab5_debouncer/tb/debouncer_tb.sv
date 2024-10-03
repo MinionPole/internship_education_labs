@@ -5,19 +5,12 @@ module debouncer_tb #(
 
   localparam int LIMIT = (CLK_FREQ_MHZ * GLITCH_TIME_NS + 999) / 1000; 
 
-  /*
-  correct work - is
-  1) in previous LIMIT+1 tacts button is pressed all except previous(because we has delay in one tact)
-  2) we didn't get key_pressed_stb last (LIMIT - 1) tact
-  */
-
-  logic [LIMIT-  1: 0] key_mem;
-  logic [LIMIT - 1: 0] pressed_out_mem;
-
   logic                       clk;
   logic                       key;
 
   logic                       key_pressed_stb;
+
+  mailbox mbx;
 
   debouncer#(
     .CLK_FREQ_MHZ       (CLK_FREQ_MHZ   ),
@@ -38,50 +31,46 @@ module debouncer_tb #(
       forever #5 clk = !clk;
     end
 
-  function logic check_pressed_mem();
-    if(LIMIT == 1)
-      return 1;
-    return (pressed_out_mem[LIMIT - 2:0] == '0);
-  endfunction
-
-
   task generate_value(
-    logic             input_data,
-    logic             rand_data_flag
+    logic [LIMIT - 1: 0]   input_data,
+    logic                  rand_data_flag
   );
     if( rand_data_flag )
-      input_data = $urandom();
-    ##1;
-    key <= input_data;
+      begin
+        input_data = $urandom();
+        for( int i = 1; i < LIMIT / 32; i++ )
+          begin
+            input_data       = input_data << 32;
+            input_data[31:0] = $urandom();
+          end
+        input_data[0]         = 1;
+        input_data[LIMIT - 1] = 1;
+        //$display("value is %b", input_data);
+      end
+    for( int i = 0; i < LIMIT; i++ )
+        begin
+          ##1;
+          key <= input_data[i];
+        end
+    if(input_data == '0)    
+      mbx.put(1);
   endtask
 
   task check_value();
+  int data_from_mbx;
     forever
       begin
         if(key_pressed_stb)
           begin
             //$display("%b and %b", key_mem, pressed_out_mem);
-            if(!key_mem && check_pressed_mem())
-              $display("succed test");
+            if( !mbx.try_get(data_from_mbx) )
+              begin
+                $error("execute button without enough time");
+                $stop();
+              end
             else
-              begin
-                if(key_mem)
-                  $error("button was bounce %b\n", key_mem);
-                if(!check_pressed_mem())
-                  $error("you already signilized earlier");
-                $stop();
-              end
+              $display("succed test");
           end
-        if(!key_pressed_stb)
-          begin
-            if(!key_mem && check_pressed_mem())
-              begin
-                $error("button should be pressed");
-                $stop();
-              end
-          end
-        key_mem         <= {key_mem[LIMIT-2:0]        , key};
-        pressed_out_mem <= {pressed_out_mem[LIMIT-2:0], key_pressed_stb};
         ##1;
       end
   endtask
@@ -90,24 +79,39 @@ module debouncer_tb #(
   initial
     begin
       //$display("limit is %d", LIMIT);
-
+      mbx = new();
       $display("start tb with CLK_FREQ_MHZ = %d, GLITCH_TIME_NS = %d", CLK_FREQ_MHZ, GLITCH_TIME_NS);
       fork
         check_value();
       join_none
 
-      repeat(100)          generate_value('0, 0);
-      repeat(100)          generate_value('1, 0);
-      repeat(LIMIT * 1000) generate_value('0, 1);
+      generate_value('0, 0);
+      generate_value('1, 0);
 
-      for(int i = 0; i < 20;i++)
+      for(int i = 0; i < 200;i++)
         begin
-          repeat(15)        generate_value('0, 1);
-          repeat(LIMIT + 1) generate_value('0, 0);
-          repeat(15)        generate_value('0, 1);
+          repeat(20)  generate_value('0, 1);
+                      generate_value('0, 0);
+          repeat(20)  generate_value('0, 1);
         end
-      //repeat(100) generate_value('0, 1);
-      ##1;
+      for(int i = 0; i < 100;i++)
+        begin
+          repeat(20)  generate_value('0, 1);
+          repeat(20)  generate_value('0, 1);
+        end
+      generate_value('0 + 1'b1, 0);
+      mbx.put(1);
+      generate_value('0, 0);
+      generate_value({1'b1, {LIMIT-1{1'b0}}}, 0);
+      ##1;  
+      key <= 1;
+      ##40;
+      if( mbx.num() != 0 )
+        begin
+          $error("Have bits in referance queues!");
+          $stop();
+        end
+
       $display("success tb with CLK_FREQ_MHZ = %d, GLITCH_TIME_NS = %d", CLK_FREQ_MHZ, GLITCH_TIME_NS);
       $stop();
     end
