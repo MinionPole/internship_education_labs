@@ -4,7 +4,7 @@ module synchronizer(
    output logic signal_sync
 );
 
-logic [1:0] sync = '1;
+logic [1:0] sync;
 
 always_ff @( posedge clk )
    sync <= { sync[0], signal };
