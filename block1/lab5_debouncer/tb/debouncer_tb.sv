@@ -94,6 +94,15 @@ module debouncer_tb #(
                       generate_value('0, 0);
           repeat(20)  generate_value('0, 1);
         end
+
+      for(int i = 2; i < 10;i++)
+        begin
+          for(int j = 0; j < i;j++)
+            begin
+              generate_value('0, 0);
+            end
+        end
+        
       for(int i = 0; i < 100;i++)
         begin
           repeat(20)  generate_value('0, 1);
