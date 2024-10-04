@@ -3,7 +3,8 @@ module debouncer_tb #(
   parameter GLITCH_TIME_NS = 10
 );
 
-  localparam int LIMIT = (CLK_FREQ_MHZ * GLITCH_TIME_NS + 999) / 1000; 
+  localparam int LIMIT = (CLK_FREQ_MHZ * GLITCH_TIME_NS + 999) / 1000;
+  localparam int CLK_TIME = 5;  
 
   logic                       clk;
   logic                       key;
@@ -29,13 +30,13 @@ module debouncer_tb #(
   initial
     begin
       clk = 0;
-      forever #5 clk = !clk;
+      forever #CLK_TIME clk = !clk;
     end
 
   initial
     begin
       clk_counter = 0;
-      forever #10 clk_counter = clk_counter + 1;
+      forever #(CLK_TIME * 2) clk_counter = clk_counter + 1;
     end
 
   task generate_value(
@@ -77,7 +78,10 @@ module debouncer_tb #(
             if( ((clk_counter - data_from_mbx) * 1000 * 1.0 / CLK_FREQ_MHZ - GLITCH_TIME_NS) * 1.0 / GLITCH_TIME_NS <= 0.02)
               $display("succed test");
             else
-              $display("too much delay");
+              begin
+                $error("too much delay");
+                $stop();
+              end
           end
         ##1;
       end
@@ -96,7 +100,7 @@ module debouncer_tb #(
       generate_value('1, 0);
       mbx.put(clk_counter + 1);
       generate_value('0, 0);
-      
+
       generate_value('1, 0);
       mbx.put(clk_counter + 1);
       for(int i = 0; i < 4;i++)
@@ -121,7 +125,7 @@ module debouncer_tb #(
         end
       if(LIMIT != 1)
         begin
-          mbx.put(clk_counter + 1); 
+          mbx.put(clk_counter + 2); 
           generate_value('0 + 1'b1, 0);
           generate_value('0, 0);
           generate_value({1'b1, {LIMIT-1{1'b0}}}, 0);
