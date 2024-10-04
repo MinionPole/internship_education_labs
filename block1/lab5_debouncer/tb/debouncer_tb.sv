@@ -62,7 +62,6 @@ module debouncer_tb #(
       begin
         if(key_pressed_stb)
           begin
-            //$display("%b and %b", key_mem, pressed_out_mem);
             if( !mbx.try_get(data_from_mbx) )
               begin
                 $error("execute button without enough time");
