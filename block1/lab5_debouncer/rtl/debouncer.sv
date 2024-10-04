@@ -10,8 +10,8 @@ module debouncer #(
   // at least one tact button must be pressed
   localparam int LIMIT = (CLK_FREQ_MHZ * GLITCH_TIME_NS + 999) / 1000; 
 
-  int cnt = 0;
-  logic sync_out;
+  logic [$clog2(LIMIT):0]     cnt = 0;
+  logic                       sync_out;
   
   synchronizer sync_obj (
     .clk          (clk_i    ),
