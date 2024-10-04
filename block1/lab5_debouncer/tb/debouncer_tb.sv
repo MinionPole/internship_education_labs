@@ -4,7 +4,7 @@ module debouncer_tb #(
 );
 
   localparam int LIMIT = (CLK_FREQ_MHZ * GLITCH_TIME_NS + 999) / 1000;
-  localparam int CLK_TIME = 5;  
+  localparam longint CLK_TIME = (1000000) * 1.0 / (2.0 * CLK_FREQ_MHZ); 
 
   logic                       clk;
   logic                       key;
@@ -33,12 +33,6 @@ module debouncer_tb #(
       forever #CLK_TIME clk = !clk;
     end
 
-  initial
-    begin
-      clk_counter = 0;
-      forever #(CLK_TIME * 2) clk_counter = clk_counter + 1;
-    end
-
   task generate_value(
     logic [LIMIT - 1: 0]   input_data,
     logic                  rand_data_flag
@@ -63,7 +57,7 @@ module debouncer_tb #(
   endtask
 
   task check_value();
-  int data_from_mbx;
+  longint data_from_mbx;
     forever
       begin
         if(key_pressed_stb)
@@ -74,8 +68,8 @@ module debouncer_tb #(
                 $error("execute button without enough time");
                 $stop();
               end
-            $display((clk_counter - data_from_mbx) * 1000 * 1.0 / CLK_FREQ_MHZ);
-            if( ((clk_counter - data_from_mbx) * 1000 * 1.0 / CLK_FREQ_MHZ - GLITCH_TIME_NS) * 1.0 / GLITCH_TIME_NS <= 0.02)
+            //$display(($time() - data_from_mbx) * 1.0 / 1000 );
+            if( (($time() - data_from_mbx) * 1.0 / 1000 - GLITCH_TIME_NS) * 1.0 / GLITCH_TIME_NS <= 0.02)
               $display("succed test");
             else
               begin
@@ -90,6 +84,7 @@ module debouncer_tb #(
 
   initial
     begin
+      longint k;
       //$display("limit is %d", LIMIT);
       mbx = new();
       $display("start tb with CLK_FREQ_MHZ = %d, GLITCH_TIME_NS = %d", CLK_FREQ_MHZ, GLITCH_TIME_NS);
@@ -98,11 +93,14 @@ module debouncer_tb #(
       join_none
 
       generate_value('1, 0);
-      mbx.put(clk_counter + 1);
+
+      k = $time() + 2 * CLK_TIME;
+      mbx.put(k);
       generate_value('0, 0);
 
       generate_value('1, 0);
-      mbx.put(clk_counter + 1);
+      k = $time() + 2 * CLK_TIME;
+      mbx.put(k);
       for(int i = 0; i < 4;i++)
         begin
           generate_value('0, 0);
@@ -111,21 +109,22 @@ module debouncer_tb #(
       for(int i = 0; i < 20;i++)
         begin
           repeat(5)  generate_value('0, 1);
-          mbx.put(clk_counter + 1);
+          k = $time() + 2 * CLK_TIME;
+          mbx.put(k);
                      generate_value('0, 0);
           repeat(5)  generate_value('0, 1);
         end
-
-
 
       for(int i = 0; i < 10;i++)
         begin
           repeat(20)  generate_value('0, 1);
           repeat(20)  generate_value('0, 1);
         end
+
       if(LIMIT != 1)
         begin
-          mbx.put(clk_counter + 2); 
+          k = $time() + 4 * CLK_TIME;
+          mbx.put(k);
           generate_value('0 + 1'b1, 0);
           generate_value('0, 0);
           generate_value({1'b1, {LIMIT-1{1'b0}}}, 0);
