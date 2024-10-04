@@ -30,7 +30,7 @@ module debouncer #(
 
   always_ff @( posedge clk_i )
     begin
-      key_pressed_stb_o <= ( cnt == LIMIT ) ? 1'b1 : 1'b0;
+      key_pressed_stb_o <= ( !( cnt < LIMIT) ) ? 1'b1 : 1'b0;
     end
 
 
