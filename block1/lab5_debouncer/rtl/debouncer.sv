@@ -10,7 +10,8 @@ module debouncer #(
   // at least one tact button must be pressed
   localparam int LIMIT = (CLK_FREQ_MHZ * GLITCH_TIME_NS + 999) / 1000; 
 
-  logic [$clog2(LIMIT):0]     cnt = 0;
+  logic                       one_flag;
+  logic [$clog2(LIMIT):0]     cnt;
   logic                       sync_out;
   
   synchronizer sync_obj (
@@ -19,6 +20,14 @@ module debouncer #(
 
     .signal_sync  (sync_out )
   );
+
+    always_ff @( posedge clk_i )
+    begin
+      if(!( cnt < LIMIT))
+        one_flag <= 0;
+      if( sync_out )
+        one_flag <= 1;
+    end
 
   always_ff @( posedge clk_i )
     begin
@@ -30,7 +39,7 @@ module debouncer #(
 
   always_ff @( posedge clk_i )
     begin
-      key_pressed_stb_o <= ( !( cnt < LIMIT) ) ? 1'b1 : 1'b0;
+      key_pressed_stb_o <= ( !( cnt < LIMIT) && one_flag) ? 1'b1 : 1'b0;
     end
 
 

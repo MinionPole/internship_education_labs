@@ -54,8 +54,6 @@ module debouncer_tb #(
         input_data[LIMIT - 1] = 1;
         //$display("value is %b", input_data);
       end
-    if(input_data == '0)
-      mbx.put(clk_counter);
     for( int i = 0; i < LIMIT; i++ )
         begin
           ##1;
@@ -95,23 +93,26 @@ module debouncer_tb #(
         check_value();
       join_none
 
-      generate_value('0, 0);
       generate_value('1, 0);
+      mbx.put(clk_counter + 1);
+      generate_value('0, 0);
+      
+      generate_value('1, 0);
+      mbx.put(clk_counter + 1);
+      for(int i = 0; i < 4;i++)
+        begin
+          generate_value('0, 0);
+        end
 
       for(int i = 0; i < 20;i++)
         begin
-          repeat(20)  generate_value('0, 1);
-                      generate_value('0, 0);
-          repeat(20)  generate_value('0, 1);
+          repeat(5)  generate_value('0, 1);
+          mbx.put(clk_counter + 1);
+                     generate_value('0, 0);
+          repeat(5)  generate_value('0, 1);
         end
 
-      for(int i = 2; i < 10;i++)
-        begin
-          for(int j = 0; j < i;j++)
-            begin
-              generate_value('0, 0);
-            end
-        end
+
 
       for(int i = 0; i < 10;i++)
         begin
