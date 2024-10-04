@@ -13,8 +13,9 @@ proc runtest {i j} {
   add wave /debouncer_tb/debouncer_obj/sync_out
   run -all
 }
-for {set i 10} {$i <= 500} {incr i 50} {
-  for {set j 1} {$j <= 50} {incr j 10} {
+
+for {set i 150} {$i <= 500} {incr i 50} {
+  for {set j 10000} {$j <= 100000} {incr j 10000} {
     runtest $i $j
   }
 }

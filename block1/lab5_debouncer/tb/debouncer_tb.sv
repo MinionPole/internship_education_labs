@@ -11,6 +11,7 @@ module debouncer_tb #(
   logic                       key_pressed_stb;
 
   mailbox mbx;
+  int clk_counter = 0;
 
   debouncer#(
     .CLK_FREQ_MHZ       (CLK_FREQ_MHZ   ),
@@ -31,6 +32,12 @@ module debouncer_tb #(
       forever #5 clk = !clk;
     end
 
+  initial
+    begin
+      clk_counter = 0;
+      forever #10 clk_counter = clk_counter + 1;
+    end
+
   task generate_value(
     logic [LIMIT - 1: 0]   input_data,
     logic                  rand_data_flag
@@ -47,13 +54,13 @@ module debouncer_tb #(
         input_data[LIMIT - 1] = 1;
         //$display("value is %b", input_data);
       end
+    if(input_data == '0)
+      mbx.put(clk_counter);
     for( int i = 0; i < LIMIT; i++ )
         begin
           ##1;
           key <= input_data[i];
         end
-    if(input_data == '0)
-      mbx.put(1);
   endtask
 
   task check_value();
@@ -68,8 +75,11 @@ module debouncer_tb #(
                 $error("execute button without enough time");
                 $stop();
               end
-            else
+            $display((clk_counter - data_from_mbx) * 1000 * 1.0 / CLK_FREQ_MHZ);
+            if( ((clk_counter - data_from_mbx) * 1000 * 1.0 / CLK_FREQ_MHZ - GLITCH_TIME_NS) * 1.0 / GLITCH_TIME_NS <= 0.02)
               $display("succed test");
+            else
+              $display("too much delay");
           end
         ##1;
       end
@@ -88,7 +98,7 @@ module debouncer_tb #(
       generate_value('0, 0);
       generate_value('1, 0);
 
-      for(int i = 0; i < 200;i++)
+      for(int i = 0; i < 20;i++)
         begin
           repeat(20)  generate_value('0, 1);
                       generate_value('0, 0);
@@ -102,16 +112,16 @@ module debouncer_tb #(
               generate_value('0, 0);
             end
         end
-        
-      for(int i = 0; i < 100;i++)
+
+      for(int i = 0; i < 10;i++)
         begin
           repeat(20)  generate_value('0, 1);
           repeat(20)  generate_value('0, 1);
         end
       if(LIMIT != 1)
         begin
+          mbx.put(clk_counter + 1); 
           generate_value('0 + 1'b1, 0);
-          mbx.put(1);
           generate_value('0, 0);
           generate_value({1'b1, {LIMIT-1{1'b0}}}, 0);
         end

@@ -15,4 +15,4 @@ proc runtest {i j} {
   run -all
 }
 
-runtest 85 46
+runtest 150 100000
