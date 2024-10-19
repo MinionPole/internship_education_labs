@@ -117,7 +117,7 @@ module traffic_lights #(
     if( srst_i )
       state <= OFF_S;
     else
-      state <= next_state;      
+      state <= next_state;
 
   always_comb
     begin
@@ -129,7 +129,7 @@ module traffic_lights #(
             if(cmd_valid_i && cmd_type_i == 3'b000)
               next_state = RED_S;
           end
-      
+
         RED_S:
           begin
             if(state_cnt == red_time_clk)
@@ -147,7 +147,7 @@ module traffic_lights #(
             if(cmd_valid_i && cmd_type_i == 3'b001)
               next_state = OFF_S;
             if(cmd_valid_i && cmd_type_i == 3'b010)
-              next_state = YELLOW_BLINK_S;  
+              next_state = YELLOW_BLINK_S;
           end
 
         GREEN_S:
@@ -182,14 +182,14 @@ module traffic_lights #(
             if(cmd_valid_i && cmd_type_i == 3'b010)
               next_state = YELLOW_BLINK_S;
           end
-        
+
         YELLOW_BLINK_S:
           begin
             if(cmd_valid_i && cmd_type_i == 3'b000)
               next_state = RED_S;
             if(cmd_valid_i && cmd_type_i == 3'b001)
               next_state = OFF_S;
-          end     
+          end
 
         default:
           begin
@@ -243,7 +243,7 @@ module traffic_lights #(
         YELLOW_BLINK_S:
           begin
             green_o  = 0;
-          end     
+          end
 
         default:
           begin

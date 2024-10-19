@@ -84,7 +84,7 @@ module traffic_lighs_tb #(
       ##1;
       cmd_valid_i <= 0;
     end
-  endtask  
+  endtask
 
   task get_current_out();
     begin
@@ -111,7 +111,7 @@ module traffic_lighs_tb #(
             now_state = GREEN_BLINK_S;
           end
         else
-          now_state   = GREEN_S;       
+          now_state   = GREEN_S;
     end
   endtask
 
@@ -178,6 +178,7 @@ module traffic_lighs_tb #(
                       end
                     
                 end
+
               RED_S:
                 begin
                   if(now_state == RED_YELLOW_S)
@@ -198,6 +199,7 @@ module traffic_lighs_tb #(
                         $stop();
                       end
                 end
+
               RED_YELLOW_S:
                 begin
                   if(now_state == GREEN_S)
@@ -218,6 +220,7 @@ module traffic_lighs_tb #(
                         $stop();
                       end
                 end
+
               GREEN_S:
                 begin
                   if(now_state != OFF_S)
@@ -243,6 +246,7 @@ module traffic_lighs_tb #(
                   else
                       prev_state = now_state;
                 end
+
               GREEN_BLINK_S:
                 begin
                   if(now_state == YELLOW_S)
@@ -263,6 +267,7 @@ module traffic_lighs_tb #(
                         $stop();
                       end
                 end
+
               YELLOW_S:
                 begin
                   if(now_state == RED_S)
@@ -283,8 +288,9 @@ module traffic_lighs_tb #(
                         $stop();
                       end
                 end
+
             endcase
-            
+
           end
         ##1;
       end
