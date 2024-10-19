@@ -126,18 +126,12 @@ module traffic_lights #(
       case( state )
         OFF_S:
           begin
-            red_o    = 0;
-            yellow_o = 0;
-            green_o  = 0;
             if(cmd_valid_i && cmd_type_i == 3'b000)
               next_state = RED_S;
           end
       
         RED_S:
           begin
-            red_o    = 1;
-            yellow_o = 0;
-            green_o  = 0;
             if(state_cnt == red_time_clk)
               next_state = RED_YELLOW_S;
             if(cmd_valid_i && cmd_type_i == 3'b001)
@@ -148,9 +142,6 @@ module traffic_lights #(
 
         RED_YELLOW_S:
           begin
-            red_o    = 1;
-            yellow_o = 1;
-            green_o  = 0;
             if(state_cnt == red_yellow_time_clk)
               next_state = GREEN_S;
             if(cmd_valid_i && cmd_type_i == 3'b001)
@@ -161,9 +152,6 @@ module traffic_lights #(
 
         GREEN_S:
           begin
-            red_o    = 0;
-            yellow_o = 0;
-            green_o  = 1;
             if(state_cnt == green_time_clk)
               if(BLINK_GREEN_TIME_TICK != 0)
                 next_state = GREEN_BLINK_S;
@@ -177,18 +165,6 @@ module traffic_lights #(
 
         GREEN_BLINK_S:
           begin
-            if(2 * blink_state_cnt < blink_state_clk)
-              begin
-                red_o    = 0;
-                yellow_o = 0;
-                green_o  = 0;
-              end
-            else
-              begin
-                red_o    = 0;
-                yellow_o = 0;
-                green_o  = 1;
-              end
             if(state_cnt == green_blink_time_clk)
               next_state = YELLOW_S;
             if(cmd_valid_i && cmd_type_i == 3'b001)
@@ -199,9 +175,6 @@ module traffic_lights #(
 
         YELLOW_S:
           begin
-            red_o    = 0;
-            yellow_o = 1;
-            green_o  = 0;
             if(state_cnt == yellow_time_clk)
               next_state = RED_S;
             if(cmd_valid_i && cmd_type_i == 3'b001)
@@ -212,18 +185,6 @@ module traffic_lights #(
         
         YELLOW_BLINK_S:
           begin
-            if(2 * blink_state_cnt < blink_state_clk)
-              begin
-                red_o    = 0;
-                yellow_o = 0;
-                green_o  = 0;
-              end
-            else
-              begin
-                red_o    = 0;
-                yellow_o = 1;
-                green_o  = 0;
-              end
             if(cmd_valid_i && cmd_type_i == 3'b000)
               next_state = RED_S;
             if(cmd_valid_i && cmd_type_i == 3'b001)
@@ -236,6 +197,159 @@ module traffic_lights #(
           end
 
       endcase
-    end   
+    end
+
+  always_comb
+    begin
+
+      case( state )
+        OFF_S:
+          begin
+            green_o  = 0;
+          end
+
+        RED_S:
+          begin
+            green_o  = 0;
+          end
+
+        RED_YELLOW_S:
+          begin
+            green_o  = 0;
+          end
+
+        GREEN_S:
+          begin
+            green_o  = 1;
+          end
+
+        GREEN_BLINK_S:
+          begin
+            if(2 * blink_state_cnt < blink_state_clk)
+              begin
+                green_o  = 0;
+              end
+            else
+              begin
+                green_o  = 1;
+              end
+          end
+
+        YELLOW_S:
+          begin
+            green_o  = 0;
+          end
+
+        YELLOW_BLINK_S:
+          begin
+            green_o  = 0;
+          end     
+
+        default:
+          begin
+            green_o  = 0;
+          end
+
+      endcase
+    end
+  
+  always_comb
+    begin
+
+      case( state )
+        OFF_S:
+          begin
+            yellow_o = 0;
+          end
+      
+        RED_S:
+          begin
+            yellow_o = 0;
+          end
+
+        RED_YELLOW_S:
+          begin
+            yellow_o = 1;
+          end
+
+        GREEN_S:
+          begin
+            yellow_o = 0;
+          end
+
+        GREEN_BLINK_S:
+          begin
+            yellow_o = 0;
+          end
+
+        YELLOW_S:
+          begin
+            yellow_o = 1;
+          end
+        
+        YELLOW_BLINK_S:
+          begin
+            if(2 * blink_state_cnt < blink_state_clk)
+              begin
+                yellow_o = 0;
+              end
+            else
+              begin
+                yellow_o = 1;
+              end
+          end     
+
+        default:
+          begin
+            yellow_o = 0;
+          end
+
+      endcase
+    end  
+
+  always_comb
+    begin
+      case( state )
+        OFF_S:
+          begin
+            red_o  = 0;
+          end
+      
+        RED_S:
+          begin
+            red_o  = 1;
+          end
+
+        RED_YELLOW_S:
+          begin
+            red_o  = 1;
+          end
+
+        GREEN_S:
+          begin
+            red_o  = 0;
+          end
+
+        GREEN_BLINK_S:
+          begin
+            red_o  = 0;
+          end
+
+        YELLOW_S:
+          begin
+            red_o  = 0;
+          end
+        
+        YELLOW_BLINK_S:
+          begin
+            red_o  = 0;
+          end     
+
+        default:
+          begin
+            red_o  = 0;
+          end
+      endcase
+    end
 
 endmodule
