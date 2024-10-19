@@ -1,6 +1,6 @@
 module traffic_lights #(
   parameter BLINK_HALF_PERIOD_MS  = 4,
-  parameter BLINK_GREEN_TIME_TICK = 0,
+  parameter BLINK_GREEN_TIME_TICK = 8,
   parameter RED_YELLOW_MS         = 10
 )(
   input                       clk_i,
@@ -261,7 +261,7 @@ module traffic_lights #(
           begin
             yellow_o = 0;
           end
-      
+
         RED_S:
           begin
             yellow_o = 0;
@@ -286,7 +286,7 @@ module traffic_lights #(
           begin
             yellow_o = 1;
           end
-        
+
         YELLOW_BLINK_S:
           begin
             if(2 * blink_state_cnt < blink_state_clk)
@@ -297,7 +297,7 @@ module traffic_lights #(
               begin
                 yellow_o = 1;
               end
-          end     
+          end
 
         default:
           begin
@@ -305,7 +305,7 @@ module traffic_lights #(
           end
 
       endcase
-    end  
+    end
 
   always_comb
     begin
@@ -314,7 +314,7 @@ module traffic_lights #(
           begin
             red_o  = 0;
           end
-      
+
         RED_S:
           begin
             red_o  = 1;
@@ -339,11 +339,11 @@ module traffic_lights #(
           begin
             red_o  = 0;
           end
-        
+
         YELLOW_BLINK_S:
           begin
             red_o  = 0;
-          end     
+          end
 
         default:
           begin

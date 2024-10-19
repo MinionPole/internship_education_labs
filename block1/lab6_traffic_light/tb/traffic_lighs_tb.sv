@@ -42,11 +42,11 @@ module traffic_lighs_tb #(
 
   default clocking cb @( posedge clk );
   endclocking
-  localparam real allow_delta            = 0.1;
   localparam longint CLK_FREQ_HZ         = 2000;
   localparam longint CLK_TIME            = (1000000) * 1.0 / (2.0 * CLK_FREQ_HZ);
   localparam longint GREEN_BLINK_TIME_US = BLINK_HALF_PERIOD_MS * 1000 * (2 * BLINK_GREEN_TIME_TICK + 1);
 
+  mailbox mbx;
   longint red_time_us = 100000, yellow_time_us = 30000, green_time_us = 50000;
   longint prev_time;
 
@@ -55,7 +55,6 @@ module traffic_lighs_tb #(
       clk = 0;
       forever #CLK_TIME clk = !clk;
     end
-  mailbox mbx;
 
   task change_params(longint new_red_time_us, longint new_yellow_time_us, longint new_green_time_us);
     begin
