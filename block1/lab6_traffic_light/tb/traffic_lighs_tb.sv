@@ -1,7 +1,7 @@
 `timescale 1us/1us
 module traffic_lighs_tb #(
   parameter BLINK_HALF_PERIOD_MS  = 4,
-  parameter BLINK_GREEN_TIME_TICK = 8,
+  parameter BLINK_GREEN_TIME_TICK = 0,
   parameter RED_YELLOW_MS         = 10
 );
 
@@ -176,6 +176,7 @@ module traffic_lighs_tb #(
                         $error("wrong order from yellow_blink_s");
                         $stop();
                       end
+                    
                 end
               RED_S:
                 begin
@@ -221,8 +222,23 @@ module traffic_lighs_tb #(
                 begin
                   if(now_state != OFF_S)
                     begin
-                      $error("wrong order from green_lights");
-                      $stop();
+                      if(now_state == YELLOW_S && BLINK_GREEN_TIME_TICK == 0)
+                        begin
+                          $display("prev time is are %d, nowtime is %d", prev_time, ($time()));
+                          prev_state = now_state;
+                          delta = get_time() - green_time_us;
+                          prev_time = $time();
+                          if((delta) * 1.0 / green_time_us > 0.05 || (delta) * 1.0 / green_time_us < -0.05)
+                            begin
+                              $error("not correct time to green light");
+                              $stop();
+                            end
+                        end
+                      else
+                        begin
+                          $error("wrong order from green_lights");
+                          $stop();
+                        end
                     end
                   else
                       prev_state = now_state;
@@ -302,12 +318,13 @@ module traffic_lighs_tb #(
       ##1000;
       for(int i = 0;i < 10;i++)
         begin
-          longint temp1, temp2, temp3;
-          temp1 = ($urandom() % 200000)+10000;
-          temp2 = ($urandom() % 200000)+10000;
-          temp3 = ($urandom() % 200000)+10000;
+          longint temp1, temp2, temp3, all_time;
+          temp1 = ($urandom() % 2000000)+10000;
+          temp2 = ($urandom() % 2000000)+10000;
+          temp3 = ($urandom() % 2000000)+10000;
+          all_time = temp1+temp2+temp3+GREEN_BLINK_TIME_US+RED_YELLOW_MS*1000;
           change_params(temp1, temp2, temp3);
-          ##2000;
+          ##(all_time/CLK_TIME/2+50);
         end
       $display("success test");
       $stop();

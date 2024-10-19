@@ -1,6 +1,6 @@
 module traffic_lights #(
   parameter BLINK_HALF_PERIOD_MS  = 4,
-  parameter BLINK_GREEN_TIME_TICK = 8,
+  parameter BLINK_GREEN_TIME_TICK = 0,
   parameter RED_YELLOW_MS         = 10
 )(
   input                       clk_i,
@@ -165,7 +165,10 @@ module traffic_lights #(
             yellow_o = 0;
             green_o  = 1;
             if(state_cnt == green_time_clk)
-              next_state = GREEN_BLINK_S;
+              if(BLINK_GREEN_TIME_TICK != 0)
+                next_state = GREEN_BLINK_S;
+              else
+                next_state = YELLOW_S;
             if(cmd_valid_i && cmd_type_i == 3'b001)
               next_state = OFF_S;
             if(cmd_valid_i && cmd_type_i == 3'b010)
