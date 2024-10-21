@@ -32,27 +32,27 @@ module traffic_lights #(
 
   always_comb
     begin
-      red_time_clk         <= CLK_HZ * red_time_ms / 1000;
+      red_time_clk         = CLK_HZ * red_time_ms / 1000;
     end
   
   always_comb
     begin
-      yellow_time_clk      <= CLK_HZ * yellow_time_ms / 1000;
+      yellow_time_clk      = CLK_HZ * yellow_time_ms / 1000;
     end  
   
   always_comb
     begin
-      green_time_clk       <= CLK_HZ * green_time_ms / 1000;
+      green_time_clk       = CLK_HZ * green_time_ms / 1000;
     end
 
   always_comb
     begin
-      red_yellow_time_clk  <= CLK_HZ * RED_YELLOW_MS / 1000;
+      red_yellow_time_clk  = CLK_HZ * RED_YELLOW_MS / 1000;
     end
 
   always_comb
     begin
-      blink_state_clk      <= CLK_HZ * BLINK_HALF_PERIOD_MS / 1000 * 2;
+      blink_state_clk      = CLK_HZ * BLINK_HALF_PERIOD_MS / 1000 * 2;
     end  
 
   always_comb

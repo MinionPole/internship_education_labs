@@ -1,7 +1,7 @@
 `timescale 1us/1us
 module traffic_lighs_tb #(
   parameter BLINK_HALF_PERIOD_MS  = 4,
-  parameter BLINK_GREEN_TIME_TICK = 0,
+  parameter BLINK_GREEN_TIME_TICK = 8,
   parameter RED_YELLOW_MS         = 10
 );
 
