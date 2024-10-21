@@ -201,23 +201,8 @@ module traffic_lights #(
 
   always_comb
     begin
-
+      green_o  = 0;
       case( state )
-        OFF_S:
-          begin
-            green_o  = 0;
-          end
-
-        RED_S:
-          begin
-            green_o  = 0;
-          end
-
-        RED_YELLOW_S:
-          begin
-            green_o  = 0;
-          end
-
         GREEN_S:
           begin
             green_o  = 1;
@@ -225,130 +210,41 @@ module traffic_lights #(
 
         GREEN_BLINK_S:
           begin
-            if(2 * blink_state_cnt < blink_state_clk)
-              begin
-                green_o  = 0;
-              end
-            else
-              begin
-                green_o  = 1;
-              end
+            if(2 * blink_state_cnt > blink_state_clk)
+              green_o  = 1;
           end
-
-        YELLOW_S:
-          begin
-            green_o  = 0;
-          end
-
-        YELLOW_BLINK_S:
-          begin
-            green_o  = 0;
-          end
-
-        default:
-          begin
-            green_o  = 0;
-          end
-
       endcase
     end
   
   always_comb
     begin
-
+      yellow_o = 0;
       case( state )
-        OFF_S:
-          begin
-            yellow_o = 0;
-          end
-
-        RED_S:
-          begin
-            yellow_o = 0;
-          end
 
         RED_YELLOW_S:
-          begin
-            yellow_o = 1;
-          end
-
-        GREEN_S:
-          begin
-            yellow_o = 0;
-          end
-
-        GREEN_BLINK_S:
-          begin
-            yellow_o = 0;
-          end
+          yellow_o = 1;
 
         YELLOW_S:
-          begin
-            yellow_o = 1;
-          end
+          yellow_o = 1;
 
         YELLOW_BLINK_S:
-          begin
-            if(2 * blink_state_cnt < blink_state_clk)
-              begin
-                yellow_o = 0;
-              end
-            else
-              begin
-                yellow_o = 1;
-              end
-          end
-
-        default:
-          begin
-            yellow_o = 0;
-          end
+          if(2 * blink_state_cnt > blink_state_clk)
+            yellow_o = 1;
 
       endcase
     end
 
   always_comb
     begin
+      red_o  = 0;
       case( state )
-        OFF_S:
-          begin
-            red_o  = 0;
-          end
 
         RED_S:
-          begin
-            red_o  = 1;
-          end
+          red_o  = 1;
 
         RED_YELLOW_S:
-          begin
-            red_o  = 1;
-          end
+          red_o  = 1;
 
-        GREEN_S:
-          begin
-            red_o  = 0;
-          end
-
-        GREEN_BLINK_S:
-          begin
-            red_o  = 0;
-          end
-
-        YELLOW_S:
-          begin
-            red_o  = 0;
-          end
-
-        YELLOW_BLINK_S:
-          begin
-            red_o  = 0;
-          end
-
-        default:
-          begin
-            red_o  = 0;
-          end
       endcase
     end
 
