@@ -115,7 +115,7 @@ module traffic_lights #(
 
   always_ff @( posedge clk_i )
     if( srst_i )
-      state <= OFF_S;
+      state <= RED_S;
     else
       state <= next_state;
 
