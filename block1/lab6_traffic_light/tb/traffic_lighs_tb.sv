@@ -42,12 +42,20 @@ module traffic_lighs_tb #(
 
   default clocking cb @( posedge clk );
   endclocking
-  localparam longint CLK_FREQ_HZ         = 2000;
-  localparam longint CLK_TIME            = (1000000) * 1.0 / (2.0 * CLK_FREQ_HZ);
-  localparam longint GREEN_BLINK_TIME_US = BLINK_HALF_PERIOD_MS * 1000 * (2 * BLINK_GREEN_TIME_TICK + 1);
+  localparam CLK_FREQ_HZ             sssssss= 2000;
+  localparam CLK_TIME                = (1000000) * 1.0 / (2.0 * CLK_FREQ_HZ);
+  localparam int GREEN_BLINK_TIME_MS = BLINK_HALF_PERIOD_MS * (2 * BLINK_GREEN_TIME_TICK + 1);
 
-  longint red_time_us = 100000, yellow_time_us = 30000, green_time_us = 50000;
+  longint red_time_ms = 100, yellow_time_ms = 30, green_time_ms = 50;
   longint prev_time;
+
+  int red_time_clk, yellow_time_clk, green_time_clk, red_yellow_time_clk, blink_state_clk, green_blink_time_clk;
+  assign red_time_clk         = CLK_HZ * red_time_ms / 1000;
+  assign yellow_time_clk      = CLK_HZ * yellow_time_ms / 1000;
+  assign green_time_clk       = CLK_HZ * green_time_ms / 1000;
+  assign red_yellow_time_clk  = CLK_HZ * RED_YELLOW_MS / 1000;
+  assign blink_state_clk      = CLK_HZ * BLINK_HALF_PERIOD_MS / 1000 * 2; 
+  assign green_blink_time_clk = CLK_HZ * GREEN_BLINK_TIME_MS / 1000; 
 
   initial
     begin

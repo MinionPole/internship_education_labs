@@ -3,7 +3,7 @@ module traffic_lights_top #(
   parameter BLINK_GREEN_TIME_TICK = 8,
   parameter RED_YELLOW_MS         = 10
 )(
-  input                       clk_2000hz,
+  input                       clk_150mhz,
 
   input                       srst_i,
   input [2:0]                 cmd_type_i,
@@ -25,7 +25,7 @@ module traffic_lights_top #(
   logic                 yellow_o_reg;
   logic                 green_o_reg;
 
-  always_ff @( posedge clk_2000hz )
+  always_ff @( posedge clk_150mhz )
   begin
     srst_reg        <= srst_i;
     cmd_type_i_reg  <= cmd_type_i;
@@ -42,7 +42,7 @@ module traffic_lights_top #(
     .BLINK_GREEN_TIME_TICK     ( BLINK_GREEN_TIME_TICK),
     .RED_YELLOW_MS             ( RED_YELLOW_MS        )
   ) traffic_lights_obj (
-    .clk_i                     (clk_2000hz            ),
+    .clk_i                     (clk_150mhz            ),
     .srst_i                    (srst_reg              ),
     .cmd_type_i                (cmd_type_i_reg        ),
     .cmd_valid_i               (cmd_valid_i_reg       ),
