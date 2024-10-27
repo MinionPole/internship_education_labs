@@ -87,15 +87,29 @@ module traffic_lights #(
           green_time_ms <= cmd_data_i;
     end
 
+  logic end_green, end_red;
+  assign end_red         = ( state_cnt       == red_time_clk);
+  assign end_red_yellow  = ( state_cnt       == red_yellow_time_clk);
+  assign end_green       = ( state_cnt       == green_time_clk);
+  assign end_yellow      = ( state_cnt       == yellow_time_clk);
+  assign end_green_blink = ( state_cnt       == green_blink_time_clk);
+  assign end_green_blink = ( state_cnt       == green_blink_time_clk);
+  assign end_blink       = ( blink_state_cnt == blink_state_clk);
+
   always_ff @( posedge clk_i )
     begin
       if( srst_i )
         state_cnt <= 0;
       else
-        if(state != next_state)
-          state_cnt <= 1;
-        else
-          state_cnt <= state_cnt + 1;
+        case(state)
+          RED_S:             state_cnt <= ( end_red )        ? '0 : state_cnt + 1'b1;
+          GREEN_S:           state_cnt <= ( end_green )      ? '0 : state_cnt + 1'b1;
+          YELLOW_S:          state_cnt <= ( end_yellow )     ? '0 : state_cnt + 1'b1;
+          RED_YELLOW_S:      state_cnt <= ( end_red_yellow ) ? '0 : state_cnt + 1'b1;
+          OFF_S:             state_cnt <= 0;
+          YELLOW_BLINK_S:    state_cnt <= 0;
+          GREEN_BLINK_S:     state_cnt <= ( end_green_blink ) ? '0 : state_cnt + 1'b1;
+        endcase
     end
   
   always_ff @( posedge clk_i )
@@ -103,15 +117,16 @@ module traffic_lights #(
       if( srst_i )
         blink_state_cnt <= 0;
       else
-        if(state != next_state)
-          blink_state_cnt <= 0;
-        else
-          if(blink_state_cnt == blink_state_clk)
-            blink_state_cnt <= 0;
-          else
-            blink_state_cnt <= blink_state_cnt + 1;
+        case(state)
+          RED_S:          blink_state_cnt <= 0;
+          GREEN_S:        blink_state_cnt <= 0;
+          YELLOW_S:       blink_state_cnt <= 0;
+          RED_YELLOW_S:   blink_state_cnt <= 0;
+          OFF_S:          blink_state_cnt <= 0;
+          YELLOW_BLINK_S: blink_state_cnt <= ( end_blink ) ? '0 : blink_state_cnt + 1'b1;
+          GREEN_BLINK_S:  blink_state_cnt <= ( end_blink ) ? '0 : blink_state_cnt + 1'b1;
+        endcase
     end
-
 
   always_ff @( posedge clk_i )
     if( srst_i )
