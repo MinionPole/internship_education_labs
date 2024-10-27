@@ -30,35 +30,17 @@ module traffic_lights #(
   int red_time_clk, yellow_time_clk, green_time_clk, red_yellow_time_clk, blink_state_clk, green_blink_time_clk;
   int state_cnt, blink_state_cnt;
 
-  always_comb
-    begin
-      red_time_clk         = CLK_HZ * red_time_ms / 1000;
-    end
+  assign red_time_clk         = CLK_HZ * red_time_ms / 1000;
   
-  always_comb
-    begin
-      yellow_time_clk      = CLK_HZ * yellow_time_ms / 1000;
-    end  
+  assign yellow_time_clk      = CLK_HZ * yellow_time_ms / 1000;
   
-  always_comb
-    begin
-      green_time_clk       = CLK_HZ * green_time_ms / 1000;
-    end
+  assign green_time_clk       = CLK_HZ * green_time_ms / 1000;
 
-  always_comb
-    begin
-      red_yellow_time_clk  = CLK_HZ * RED_YELLOW_MS / 1000;
-    end
+  assign red_yellow_time_clk  = CLK_HZ * RED_YELLOW_MS / 1000;
 
-  always_comb
-    begin
-      blink_state_clk      = CLK_HZ * BLINK_HALF_PERIOD_MS / 1000 * 2;
-    end  
+  assign blink_state_clk      = CLK_HZ * BLINK_HALF_PERIOD_MS / 1000 * 2; 
 
-  always_comb
-    begin
-      green_blink_time_clk <= CLK_HZ * GREEN_BLINK_TIME_MS / 1000;
-    end    
+  assign green_blink_time_clk = CLK_HZ * GREEN_BLINK_TIME_MS / 1000;   
 
   always_ff @( posedge clk_i )
     begin

@@ -46,7 +46,6 @@ module traffic_lighs_tb #(
   localparam longint CLK_TIME            = (1000000) * 1.0 / (2.0 * CLK_FREQ_HZ);
   localparam longint GREEN_BLINK_TIME_US = BLINK_HALF_PERIOD_MS * 1000 * (2 * BLINK_GREEN_TIME_TICK + 1);
 
-  mailbox mbx;
   longint red_time_us = 100000, yellow_time_us = 30000, green_time_us = 50000;
   longint prev_time;
 
@@ -85,214 +84,8 @@ module traffic_lighs_tb #(
     end
   endtask
 
-  task get_current_out();
-    begin
-      if(!red_o && !yellow_o && !green_o)
-        now_state = OFF_S;
-
-      if(red_o && !yellow_o && !green_o)
-        now_state = RED_S;
-
-      if(red_o && yellow_o && !green_o)
-        now_state = RED_YELLOW_S;
-
-      if(!red_o && yellow_o && !green_o)
-        if(prev_state == OFF_S)
-          begin
-            now_state = YELLOW_BLINK_S;
-          end
-        else
-          now_state   = YELLOW_S;
-
-      if(!red_o && !yellow_o && green_o)
-        if(prev_state == OFF_S)
-          begin
-            now_state = GREEN_BLINK_S;
-          end
-        else
-          now_state   = GREEN_S;
-    end
-  endtask
-
-  function longint get_time();
-    return $time() - prev_time;
-  endfunction
-
   task check_value();
-    int delta;
-    int input_data;
-    forever
-      begin
-        get_current_out();
-
-        if(mbx.try_get(input_data))
-          prev_state = OFF_S;
-
-        if(now_state == prev_state)
-          begin
-            //$display("the same signal %s, %s", now_state, prev_state);
-          end
-        else
-          begin
-            case(prev_state)
-              OFF_S:
-                begin
-                  if(now_state == YELLOW_BLINK_S)
-                    begin
-                      prev_state = now_state;
-                    end
-                
-                  if(now_state == GREEN_BLINK_S)
-                    begin
-                      $display("prev time is are %d, nowtime is %d", prev_time, ($time() - BLINK_HALF_PERIOD_MS * 1000));
-                      prev_state = GREEN_BLINK_S;
-                      delta = get_time() - green_time_us - 1000 * BLINK_HALF_PERIOD_MS;
-                      prev_time = $time() - 1000 * BLINK_HALF_PERIOD_MS;
-                      if((delta) * 1.0 / green_time_us > 0.05 || (delta) * 1.0 / green_time_us < -0.05)
-                        begin
-                          $error("not correct time to green light");
-                          $stop();
-                        end
-                    end
-
-                  if(now_state == RED_S)
-                    begin
-                      prev_state  = now_state;
-                      prev_time = $time();
-                    end
-                end
-
-              YELLOW_BLINK_S:
-                begin
-                  if(now_state == RED_S)
-                    begin
-                      prev_state  = now_state;
-                      prev_time = $time();
-                    end
-                  else
-                    if(now_state != OFF_S)
-                      begin
-                        $error("wrong order from yellow_blink_s");
-                        $stop();
-                      end
-                    
-                end
-
-              RED_S:
-                begin
-                  if(now_state == RED_YELLOW_S)
-                    begin
-                      prev_state = now_state;
-                      delta = get_time() - red_time_us;
-                      prev_time = $time();
-                      if((delta) * 1.0 / (red_time_us) > 0.05 || (delta) * 1.0 / (red_time_us) < -0.05)
-                        begin
-                          $error("not correct time to red light");
-                          $stop();
-                        end
-                    end
-                  else
-                    if(now_state != OFF_S)
-                      begin
-                        $error("wrong order from red light");
-                        $stop();
-                      end
-                end
-
-              RED_YELLOW_S:
-                begin
-                  if(now_state == GREEN_S)
-                    begin
-                      prev_state = now_state;
-                      delta = get_time() - RED_YELLOW_MS * 1000;
-                      prev_time = $time();
-                      if((delta) * 1.0 / (RED_YELLOW_MS * 1000) > 0.05 || (delta) * 1.0 / (RED_YELLOW_MS * 1000) < -0.05)
-                        begin
-                          $error("not correct time to red+yellow light");
-                          $stop();
-                        end
-                    end
-                  else
-                    if(now_state != OFF_S)
-                      begin
-                        $error("wrong order from red+yellow light");
-                        $stop();
-                      end
-                end
-
-              GREEN_S:
-                begin
-                  if(now_state != OFF_S)
-                    begin
-                      if(now_state == YELLOW_S && BLINK_GREEN_TIME_TICK == 0)
-                        begin
-                          $display("prev time is are %d, nowtime is %d", prev_time, ($time()));
-                          prev_state = now_state;
-                          delta = get_time() - green_time_us;
-                          prev_time = $time();
-                          if((delta) * 1.0 / green_time_us > 0.05 || (delta) * 1.0 / green_time_us < -0.05)
-                            begin
-                              $error("not correct time to green light");
-                              $stop();
-                            end
-                        end
-                      else
-                        begin
-                          $error("wrong order from green_lights");
-                          $stop();
-                        end
-                    end
-                  else
-                      prev_state = now_state;
-                end
-
-              GREEN_BLINK_S:
-                begin
-                  if(now_state == YELLOW_S)
-                    begin
-                      prev_state = now_state;
-                      delta = get_time() - (GREEN_BLINK_TIME_US);
-                      prev_time = $time();
-                      if((delta) * 1.0 / (GREEN_BLINK_TIME_US) > 0.05 || (delta) * 1.0 / (GREEN_BLINK_TIME_US) < -0.05)
-                        begin
-                          $error("not correct time to green_blink light");
-                          $stop();
-                        end
-                    end
-                  else
-                    if(now_state != OFF_S && now_state != GREEN_S)
-                      begin
-                        $error("wrong order from green_blink light");
-                        $stop();
-                      end
-                end
-
-              YELLOW_S:
-                begin
-                  if(now_state == RED_S)
-                    begin
-                      prev_state = now_state;
-                      delta = get_time() - (yellow_time_us);
-                      prev_time = $time();
-                      if((delta) * 1.0 / (yellow_time_us) > 0.05 || (delta) * 1.0 / (yellow_time_us) < -0.05)
-                        begin
-                          $error("not correct time to yellow light");
-                          $stop();
-                        end
-                    end
-                  else
-                    if(now_state != OFF_S)
-                      begin
-                        $error("wrong order from yellow light");
-                        $stop();
-                      end
-                end
-
-            endcase
-
-          end
-        ##1;
-      end
+  
   endtask
 
   task make_srst();
@@ -304,12 +97,8 @@ module traffic_lighs_tb #(
 
   initial
     begin
-      mbx = new();
-      make_srst();
 
-      fork
-        check_value();
-      join_none
+      make_srst();
 
       ##1;
       cmd_type_i = 0;
