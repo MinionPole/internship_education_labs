@@ -98,15 +98,19 @@ module traffic_lights #(
       if( srst_i )
         blink_state_cnt <= 0;
       else
-        case(state)
-          RED_S:          blink_state_cnt <= 0;
-          GREEN_S:        blink_state_cnt <= 0;
-          YELLOW_S:       blink_state_cnt <= 0;
-          RED_YELLOW_S:   blink_state_cnt <= 0;
-          OFF_S:          blink_state_cnt <= 0;
-          YELLOW_BLINK_S: blink_state_cnt <= ( end_blink ) ? '0 : blink_state_cnt + 1'b1;
-          GREEN_BLINK_S:  blink_state_cnt <= ( end_blink ) ? '0 : blink_state_cnt + 1'b1;
-        endcase
+        begin
+          case(state)
+            RED_S:          blink_state_cnt <= 0;
+            GREEN_S:        blink_state_cnt <= 0;
+            YELLOW_S:       blink_state_cnt <= 0;
+            RED_YELLOW_S:   blink_state_cnt <= 0;
+            OFF_S:          blink_state_cnt <= 0;
+            YELLOW_BLINK_S: blink_state_cnt <= ( end_blink ) ? '0 : blink_state_cnt + 1'b1;
+            GREEN_BLINK_S:  blink_state_cnt <= ( end_blink ) ? '0 : blink_state_cnt + 1'b1;
+          endcase
+          if(state == GREEN_BLINK_S && cmd_valid_i && cmd_type_i == 3'b010 )
+            blink_state_cnt <= 0;
+        end
     end
 
   always_ff @( posedge clk_i )
@@ -205,7 +209,7 @@ module traffic_lights #(
           yellow_o = 1;
 
         YELLOW_BLINK_S:
-          if(2 * blink_state_cnt > blink_state_clk)
+          if(2 * blink_state_cnt >= blink_state_clk)
             yellow_o = 1;
         
         default:

@@ -16,7 +16,6 @@ module traffic_lighs_tb #(
   logic                 yellow_o;
   logic                 green_o;
 
-
   traffic_lights#(
     .BLINK_HALF_PERIOD_MS      ( BLINK_HALF_PERIOD_MS ),
     .BLINK_GREEN_TIME_TICK     ( BLINK_GREEN_TIME_TICK),
@@ -37,10 +36,12 @@ module traffic_lighs_tb #(
   endclocking
   localparam CLK_FREQ_KHZ            = 2;
   localparam CLK_TIME                = (1000) * 1.0 / (2.0 * CLK_FREQ_KHZ);
-  localparam int GREEN_BLINK_TIME_MS = BLINK_HALF_PERIOD_MS * (2 * BLINK_GREEN_TIME_TICK + 1);
+  localparam int GREEN_BLINK_TIME_MS = BLINK_HALF_PERIOD_MS * (2 * BLINK_GREEN_TIME_TICK);
 
   longint red_time_ms = 100, yellow_time_ms = 30, green_time_ms = 50;
   longint prev_time;
+  mailbox mbx;
+  
 
   int red_time_clk, yellow_time_clk, green_time_clk, red_yellow_time_clk, blink_state_clk, green_blink_time_clk;
   assign red_time_clk         = CLK_FREQ_KHZ * red_time_ms;
@@ -81,6 +82,26 @@ module traffic_lighs_tb #(
       cmd_valid_i <= 1;
       ##1;
       cmd_valid_i <= 0;
+    end
+  endtask
+
+  task wait_in_yellow();
+    int wait_time;
+    begin
+      wait_time = $urandom() % 200 + 1;
+      $display("time is wait_time");
+      ##1;
+      cmd_type_i  <= 3'b010;
+      cmd_valid_i <= 1;
+      mbx.put(wait_time);
+      ##1;
+      cmd_valid_i <= 0;
+      ##(wait_time - 1);
+      cmd_type_i  <= 3'b000;
+      cmd_valid_i <= 1;
+      ##1;
+      cmd_valid_i <= 0;
+
     end
   endtask
 
@@ -159,6 +180,48 @@ module traffic_lighs_tb #(
 
   endtask
 
+  task check_yellow_state();
+  int data_from_mbx;
+  static int counter = 0;
+    forever
+      begin
+        if(mbx.try_get(data_from_mbx))
+          begin
+            counter = 0;
+            ##1;
+            repeat(data_from_mbx)
+              begin
+                if(counter < (blink_state_clk / 2))
+                  begin
+                    if( !(red_o === 0 && yellow_o === 0 && green_o === 0))
+                      begin
+                        $display("%d %d %d", red_o, yellow_o, green_o);
+                        $display("d - %d", data_from_mbx);
+                        $display("c - %d", counter);
+                        $display("bsc - %d", blink_state_clk);
+                        $error("!!!BAD STATE ON YELLOW_BLINK_EMPTY!!!");
+                        $stop();
+                      end
+                  end
+                else
+                  begin
+                    if( !(red_o === 0 && yellow_o === 1 && green_o === 0))
+                      begin
+                        $display("%d %d %d", red_o, yellow_o, green_o);
+                        $error("!!!BAD STATE ON YELLOW_BLINK_LIGHT!!!");
+                        $stop();
+                      end
+                  end
+                $display("time is %d, c - %d",$time(), counter);
+                counter = (counter == blink_state_clk - 1) ? 0 : (counter + 1);
+                ##1;
+              end
+          end
+        else
+          ##1;
+      end
+  endtask
+
   task make_srst();
     ##1;
     srst <= 1'b1;
@@ -168,11 +231,38 @@ module traffic_lighs_tb #(
 
   initial
     begin
-
+      mbx = new();
+      fork
+        check_yellow_state();
+      join_none
       make_srst();
       check_value();
 
-      $display("success test");
+      change_params(50, 100, 30);
+      check_value();
+      for(int i = 0;i < 40;i++)
+        begin
+          longint temp1, temp2, temp3;
+          temp1 = ($urandom() % 200) + 1;
+          temp2 = ($urandom() % 200) + 1;
+          temp3 = ($urandom() % 200) + 1;
+          change_params(temp1, temp2, temp3);
+          check_value();
+        end
+
+      for(int i = 0;i < 40;i++)
+        begin
+          longint temp1, temp2, temp3, all_time_in_clk, moment;
+          temp1           = ($urandom() % 200) + 1;
+          temp2           = ($urandom() % 200) + 1;
+          temp3           = ($urandom() % 200) + 1;
+          all_time_in_clk = (temp1+temp2+temp3+GREEN_BLINK_TIME_MS+RED_YELLOW_MS) * 1000 / CLK_TIME;
+          moment          = ($urandom() % all_time_in_clk);
+          ##(moment);
+          wait_in_yellow();
+          ##1;
+        end
+      $display("success tests");
       $stop();
     end
 
