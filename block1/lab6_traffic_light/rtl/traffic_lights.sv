@@ -24,23 +24,23 @@ module traffic_lights #(
                      YELLOW_S,
                      YELLOW_BLINK_S } state, next_state;
 
-  localparam int CLK_HZ = 2000;
-  localparam int GREEN_BLINK_TIME_MS = BLINK_HALF_PERIOD_MS * (2 * BLINK_GREEN_TIME_TICK + 1);
+  localparam int CLK_KHZ = 2;
+  localparam int GREEN_BLINK_TIME_MS = BLINK_HALF_PERIOD_MS * (2 * BLINK_GREEN_TIME_TICK);
   int red_time_ms, yellow_time_ms, green_time_ms;
   int red_time_clk, yellow_time_clk, green_time_clk, red_yellow_time_clk, blink_state_clk, green_blink_time_clk;
   int state_cnt, blink_state_cnt;
 
-  assign red_time_clk         = CLK_HZ * red_time_ms / 1000;
+  assign red_time_clk         = CLK_KHZ * red_time_ms - 1;
   
-  assign yellow_time_clk      = CLK_HZ * yellow_time_ms / 1000;
+  assign yellow_time_clk      = CLK_KHZ * yellow_time_ms - 1;
   
-  assign green_time_clk       = CLK_HZ * green_time_ms / 1000;
+  assign green_time_clk       = CLK_KHZ * green_time_ms - 1;
 
-  assign red_yellow_time_clk  = CLK_HZ * RED_YELLOW_MS / 1000;
+  assign red_yellow_time_clk  = CLK_KHZ * RED_YELLOW_MS - 1;
 
-  assign blink_state_clk      = CLK_HZ * BLINK_HALF_PERIOD_MS / 1000 * 2; 
+  assign blink_state_clk      = CLK_KHZ * BLINK_HALF_PERIOD_MS * 2 - 1; 
 
-  assign green_blink_time_clk = CLK_HZ * GREEN_BLINK_TIME_MS / 1000;   
+  assign green_blink_time_clk = CLK_KHZ * GREEN_BLINK_TIME_MS - 1;   
 
   always_ff @( posedge clk_i )
     begin
@@ -83,10 +83,10 @@ module traffic_lights #(
         state_cnt <= 0;
       else
         case(state)
-          RED_S:             state_cnt <= ( end_red )        ? '0 : state_cnt + 1'b1;
-          GREEN_S:           state_cnt <= ( end_green )      ? '0 : state_cnt + 1'b1;
-          YELLOW_S:          state_cnt <= ( end_yellow )     ? '0 : state_cnt + 1'b1;
-          RED_YELLOW_S:      state_cnt <= ( end_red_yellow ) ? '0 : state_cnt + 1'b1;
+          RED_S:             state_cnt <= ( end_red )         ? '0 : state_cnt + 1'b1;
+          GREEN_S:           state_cnt <= ( end_green )       ? '0 : state_cnt + 1'b1;
+          YELLOW_S:          state_cnt <= ( end_yellow )      ? '0 : state_cnt + 1'b1;
+          RED_YELLOW_S:      state_cnt <= ( end_red_yellow )  ? '0 : state_cnt + 1'b1;
           OFF_S:             state_cnt <= 0;
           YELLOW_BLINK_S:    state_cnt <= 0;
           GREEN_BLINK_S:     state_cnt <= ( end_green_blink ) ? '0 : state_cnt + 1'b1;
@@ -184,7 +184,7 @@ module traffic_lights #(
           green_o  = 1;
 
         GREEN_BLINK_S:
-          if(2 * blink_state_cnt > blink_state_clk)
+          if(2 * blink_state_cnt >= blink_state_clk)
             green_o  = 1;
 
         default:

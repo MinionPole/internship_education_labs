@@ -16,13 +16,6 @@ module traffic_lighs_tb #(
   logic                 yellow_o;
   logic                 green_o;
 
-  enum logic [3:0] { OFF_S,
-                     RED_S,
-                     RED_YELLOW_S,
-                     GREEN_S,
-                     GREEN_BLINK_S,
-                     YELLOW_S,
-                     YELLOW_BLINK_S } prev_state = OFF_S, now_state;
 
   traffic_lights#(
     .BLINK_HALF_PERIOD_MS      ( BLINK_HALF_PERIOD_MS ),
@@ -42,20 +35,20 @@ module traffic_lighs_tb #(
 
   default clocking cb @( posedge clk );
   endclocking
-  localparam CLK_FREQ_HZ             sssssss= 2000;
-  localparam CLK_TIME                = (1000000) * 1.0 / (2.0 * CLK_FREQ_HZ);
+  localparam CLK_FREQ_KHZ            = 2;
+  localparam CLK_TIME                = (1000) * 1.0 / (2.0 * CLK_FREQ_KHZ);
   localparam int GREEN_BLINK_TIME_MS = BLINK_HALF_PERIOD_MS * (2 * BLINK_GREEN_TIME_TICK + 1);
 
   longint red_time_ms = 100, yellow_time_ms = 30, green_time_ms = 50;
   longint prev_time;
 
   int red_time_clk, yellow_time_clk, green_time_clk, red_yellow_time_clk, blink_state_clk, green_blink_time_clk;
-  assign red_time_clk         = CLK_HZ * red_time_ms / 1000;
-  assign yellow_time_clk      = CLK_HZ * yellow_time_ms / 1000;
-  assign green_time_clk       = CLK_HZ * green_time_ms / 1000;
-  assign red_yellow_time_clk  = CLK_HZ * RED_YELLOW_MS / 1000;
-  assign blink_state_clk      = CLK_HZ * BLINK_HALF_PERIOD_MS / 1000 * 2; 
-  assign green_blink_time_clk = CLK_HZ * GREEN_BLINK_TIME_MS / 1000; 
+  assign red_time_clk         = CLK_FREQ_KHZ * red_time_ms;
+  assign yellow_time_clk      = CLK_FREQ_KHZ * yellow_time_ms;
+  assign green_time_clk       = CLK_FREQ_KHZ * green_time_ms;
+  assign red_yellow_time_clk  = CLK_FREQ_KHZ * RED_YELLOW_MS;
+  assign blink_state_clk      = CLK_FREQ_KHZ * BLINK_HALF_PERIOD_MS * 2; 
+  assign green_blink_time_clk = CLK_FREQ_KHZ * GREEN_BLINK_TIME_MS; 
 
   initial
     begin
@@ -63,27 +56,26 @@ module traffic_lighs_tb #(
       forever #CLK_TIME clk = !clk;
     end
 
-  task change_params(longint new_red_time_us, longint new_yellow_time_us, longint new_green_time_us);
+  task change_params(longint new_red_time_ms, longint new_yellow_time_ms, longint new_green_time_ms);
     begin
-      red_time_us    = new_red_time_us;
-      yellow_time_us = new_yellow_time_us;
-      green_time_us  = new_green_time_us;
+      red_time_ms    = new_red_time_ms;
+      yellow_time_ms = new_yellow_time_ms;
+      green_time_ms  = new_green_time_ms;
       ##1;
       cmd_type_i  <= 3'b010;
       cmd_valid_i <= 1;
-      mbx.put(1);
       ##1;
       cmd_type_i  <= 3'b011;
       cmd_valid_i <= 1;
-      cmd_data_i  <= (new_green_time_us / 1000);
+      cmd_data_i  <= (new_green_time_ms);
       ##1;
       cmd_type_i  <= 3'b100;
       cmd_valid_i <= 1;
-      cmd_data_i  <= (new_red_time_us / 1000);
+      cmd_data_i  <= (new_red_time_ms);
       ##1;
       cmd_type_i  <= 3'b101;
       cmd_valid_i <= 1;
-      cmd_data_i  <= (new_yellow_time_us / 1000);
+      cmd_data_i  <= (new_yellow_time_ms);
       ##1;
       cmd_type_i  <= 3'b000;
       cmd_valid_i <= 1;
@@ -93,7 +85,78 @@ module traffic_lighs_tb #(
   endtask
 
   task check_value();
-  
+    repeat(red_time_clk)
+      begin
+        //
+        if( !(red_o === 1 && yellow_o === 0 && green_o === 0))
+          begin
+            $display("%d %d %d", red_o, yellow_o, green_o);
+            $error("!!!BAD STATE ON RED!!!");
+            $stop();
+          end
+        ##1;
+      end
+    $display("success red");
+    repeat(red_yellow_time_clk)
+      begin
+        if( !(red_o === 1 && yellow_o === 1 && green_o === 0))
+          begin
+            $display("%d %d %d", red_o, yellow_o, green_o);
+            $error("!!!BAD STATE ON RED+YELLOW!!!");
+            $stop();
+          end
+        ##1;
+      end
+    $display("success red+yellow");
+    repeat(green_time_clk)
+      begin
+        if( !(red_o === 0 && yellow_o === 0 && green_o === 1))
+          begin
+            $display("%d %d %d", red_o, yellow_o, green_o);
+            $error("!!!BAD STATE ON GREEN!!!");
+            $stop();
+          end
+          
+        ##1;
+      end
+    $display("success green");
+
+    repeat(BLINK_GREEN_TIME_TICK)
+      begin
+        repeat(blink_state_clk / 2)
+          begin
+            if( !(red_o === 0 && yellow_o === 0 && green_o === 0))
+              begin
+                $display("%d %d %d", red_o, yellow_o, green_o);
+                $error("!!!BAD STATE ON GREEN_BLINK_EMPTY!!!");
+                $stop();
+              end
+            ##1;
+          end
+        repeat(blink_state_clk / 2)
+          begin
+            if( !(red_o === 0 && yellow_o === 0 && green_o === 1))
+              begin
+                $display("%d %d %d", red_o, yellow_o, green_o);
+                $error("!!!BAD STATE ON GREEN_BLINK_LIGHT!!!");
+                $stop();
+              end
+            ##1;
+          end
+      end
+    $display("success greenblink");
+    repeat(yellow_time_clk)
+      begin
+        if( !(red_o === 0 && yellow_o === 1 && green_o === 0))
+          begin
+            $display("%d %d %d", red_o, yellow_o, green_o);
+            $error("!!!BAD STATE ON YELLOW!!!");
+            $stop();
+          end
+        ##1;
+      end
+    $display("success yellow");
+
   endtask
 
   task make_srst();
@@ -107,27 +170,8 @@ module traffic_lighs_tb #(
     begin
 
       make_srst();
+      check_value();
 
-      ##1;
-      cmd_type_i = 0;
-      cmd_valid_i = 1;
-      ##1;
-      cmd_type_i = 0;
-      cmd_valid_i = 0;
-      
-      ##1000;
-      change_params(50000, 100000, 30000);
-      ##1000;
-      for(int i = 0;i < 10;i++)
-        begin
-          longint temp1, temp2, temp3, all_time;
-          temp1 = ($urandom() % 2000000)+10000;
-          temp2 = ($urandom() % 2000000)+10000;
-          temp3 = ($urandom() % 2000000)+10000;
-          all_time = temp1+temp2+temp3+GREEN_BLINK_TIME_US+RED_YELLOW_MS*1000;
-          change_params(temp1, temp2, temp3);
-          ##(all_time/CLK_TIME/2+50);
-        end
       $display("success test");
       $stop();
     end
