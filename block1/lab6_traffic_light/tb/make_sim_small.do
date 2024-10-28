@@ -13,8 +13,8 @@ proc runtest {i j} {
   add wave /traffic_lighs_tb/red_o
   add wave /traffic_lighs_tb/yellow_o
   add wave /traffic_lighs_tb/green_o
-  add wave /traffic_lighs_tb/traffic_lights_obj/state
-  add wave /traffic_lighs_tb/traffic_lights_obj/next_state
+  add wave /traffic_lighs_tb/traffic_lights_dut/state
+  add wave /traffic_lighs_tb/traffic_lights_dut/next_state
   run -all
 }
 

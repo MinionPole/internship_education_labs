@@ -20,7 +20,7 @@ module traffic_lighs_tb #(
     .BLINK_HALF_PERIOD_MS      ( BLINK_HALF_PERIOD_MS ),
     .BLINK_GREEN_TIME_TICK     ( BLINK_GREEN_TIME_TICK),
     .RED_YELLOW_MS             ( RED_YELLOW_MS        )
-  ) traffic_lights_obj (
+  ) traffic_lights_dut (
     .clk_i                     (clk                   ),
     .srst_i                    (srst                  ),
     .cmd_type_i                (cmd_type_i            ),
