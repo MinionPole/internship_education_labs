@@ -24,11 +24,11 @@ module traffic_lights #(
                      YELLOW_S,
                      YELLOW_BLINK_S } state, next_state;
 
-  localparam int CLK_KHZ = 2;
-  localparam int GREEN_BLINK_TIME_MS = BLINK_HALF_PERIOD_MS * (2 * BLINK_GREEN_TIME_TICK);
-  int red_time_ms, yellow_time_ms, green_time_ms;
-  int red_time_clk, yellow_time_clk, green_time_clk, red_yellow_time_clk, blink_state_clk, green_blink_time_clk;
-  int state_cnt, blink_state_cnt;
+  localparam logic[31:0] CLK_KHZ = 2;
+  localparam logic[31:0] GREEN_BLINK_TIME_MS = BLINK_HALF_PERIOD_MS * (2 * BLINK_GREEN_TIME_TICK);
+  logic[31:0] red_time_ms, yellow_time_ms, green_time_ms;
+  logic[31:0] red_time_clk, yellow_time_clk, green_time_clk, red_yellow_time_clk, blink_state_clk, green_blink_time_clk;
+  logic[31:0] state_cnt, blink_state_cnt;
 
   assign red_time_clk         = CLK_KHZ * red_time_ms - 1;
   
@@ -106,10 +106,14 @@ module traffic_lights #(
             RED_YELLOW_S:   blink_state_cnt <= 0;
             OFF_S:          blink_state_cnt <= 0;
             YELLOW_BLINK_S: blink_state_cnt <= ( end_blink ) ? '0 : blink_state_cnt + 1'b1;
-            GREEN_BLINK_S:  blink_state_cnt <= ( end_blink ) ? '0 : blink_state_cnt + 1'b1;
+            GREEN_BLINK_S:  
+              begin
+                if(cmd_valid_i && cmd_type_i == 3'b010 )
+                  blink_state_cnt <= 0;
+                else
+                  blink_state_cnt <= ( end_blink ) ? '0 : blink_state_cnt + 1'b1;
+              end
           endcase
-          if(state == GREEN_BLINK_S && cmd_valid_i && cmd_type_i == 3'b010 )
-            blink_state_cnt <= 0;
         end
     end
 
