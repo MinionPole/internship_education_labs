@@ -57,7 +57,7 @@ module traffic_lighs_tb #(
       forever #CLK_TIME clk = !clk;
     end
 
-  task change_params(longint new_red_time_ms, longint new_yellow_time_ms, longint new_green_time_ms);
+  task change_params(int new_red_time_ms, int new_yellow_time_ms, int new_green_time_ms);
     begin
       red_time_ms    = new_red_time_ms;
       yellow_time_ms = new_yellow_time_ms;
@@ -242,22 +242,23 @@ module traffic_lighs_tb #(
       check_value();
       for(int i = 0;i < 40;i++)
         begin
-          longint temp1, temp2, temp3;
-          temp1 = ($urandom() % 200) + 1;
-          temp2 = ($urandom() % 200) + 1;
-          temp3 = ($urandom() % 200) + 1;
-          change_params(temp1, temp2, temp3);
+          int gen_red_time_ms, gen_green_time_ms, gen_yellow_time_ms;
+          gen_red_time_ms    = ($urandom() % 200) + 1;
+          gen_green_time_ms  = ($urandom() % 200) + 1;
+          gen_yellow_time_ms = ($urandom() % 200) + 1;
+          change_params(gen_red_time_ms, gen_green_time_ms, gen_yellow_time_ms);
           check_value();
         end
 
       for(int i = 0;i < 40;i++)
         begin
-          longint temp1, temp2, temp3, all_time_in_clk, moment;
-          temp1           = ($urandom() % 200) + 1;
-          temp2           = ($urandom() % 200) + 1;
-          temp3           = ($urandom() % 200) + 1;
-          all_time_in_clk = (temp1+temp2+temp3+GREEN_BLINK_TIME_MS+RED_YELLOW_MS) * 1000 / CLK_TIME;
-          moment          = ($urandom() % all_time_in_clk);
+          int gen_red_time_ms, gen_green_time_ms, gen_yellow_time_ms, all_time_in_clk, moment;
+          gen_red_time_ms    = ($urandom() % 200) + 1;
+          gen_green_time_ms  = ($urandom() % 200) + 1;
+          gen_yellow_time_ms = ($urandom() % 200) + 1;
+          all_time_in_clk    = (gen_red_time_ms+gen_green_time_ms+gen_yellow_time_ms+GREEN_BLINK_TIME_MS+RED_YELLOW_MS) * 1000 / CLK_TIME;
+          change_params(gen_red_time_ms, gen_green_time_ms, gen_yellow_time_ms);
+          moment             = ($urandom() % all_time_in_clk) + 1;
           ##(moment);
           wait_in_yellow();
           ##1;
