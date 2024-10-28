@@ -26,10 +26,12 @@ module traffic_lights #(
 
   localparam logic[31:0] CLK_KHZ = 2;
   localparam logic[15:0] GREEN_BLINK_TIME_MS = BLINK_HALF_PERIOD_MS * (2 * BLINK_GREEN_TIME_TICK);
-  logic[15:0] red_time_ms, yellow_time_ms, green_time_ms;
-  logic[47:0] red_time_clk, yellow_time_clk, green_time_clk, red_yellow_time_clk, blink_state_clk, green_blink_time_clk;
-  logic[47:0] state_cnt;
-  logic[$clog2(CLK_KHZ * BLINK_HALF_PERIOD_MS * 2 - 1):0] blink_state_cnt;
+  localparam             BLINK_CNT_W = $clog2(CLK_KHZ * BLINK_HALF_PERIOD_MS * 2);
+  localparam             CNT_W = $clog2(CLK_KHZ) + 16;
+  logic[15:0]          red_time_ms, yellow_time_ms, green_time_ms;
+  logic[47:0]          red_time_clk, yellow_time_clk, green_time_clk, red_yellow_time_clk, blink_state_clk, green_blink_time_clk;
+  logic[CNT_W:0]       state_cnt;
+  logic[BLINK_CNT_W:0] blink_state_cnt;
 
   assign red_time_clk         = CLK_KHZ * red_time_ms - 1;
   
