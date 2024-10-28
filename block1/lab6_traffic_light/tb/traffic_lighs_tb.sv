@@ -38,8 +38,8 @@ module traffic_lighs_tb #(
   localparam CLK_TIME                = (1000) * 1.0 / (2.0 * CLK_FREQ_KHZ);
   localparam int GREEN_BLINK_TIME_MS = BLINK_HALF_PERIOD_MS * (2 * BLINK_GREEN_TIME_TICK);
 
-  longint red_time_ms = 100, yellow_time_ms = 30, green_time_ms = 50;
-  longint prev_time;
+  int red_time_ms = 100, yellow_time_ms = 30, green_time_ms = 50;
+  int prev_time;
   mailbox mbx;
   
 
@@ -68,15 +68,15 @@ module traffic_lighs_tb #(
       ##1;
       cmd_type_i  <= 3'b011;
       cmd_valid_i <= 1;
-      cmd_data_i  <= (new_green_time_ms);
+      cmd_data_i  <= new_green_time_ms;
       ##1;
       cmd_type_i  <= 3'b100;
       cmd_valid_i <= 1;
-      cmd_data_i  <= (new_red_time_ms);
+      cmd_data_i  <= new_red_time_ms;
       ##1;
       cmd_type_i  <= 3'b101;
       cmd_valid_i <= 1;
-      cmd_data_i  <= (new_yellow_time_ms);
+      cmd_data_i  <= new_yellow_time_ms;
       ##1;
       cmd_type_i  <= 3'b000;
       cmd_valid_i <= 1;

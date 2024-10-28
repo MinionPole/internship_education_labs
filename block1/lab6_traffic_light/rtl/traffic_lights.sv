@@ -106,7 +106,7 @@ module traffic_lights #(
             RED_YELLOW_S:   blink_state_cnt <= 0;
             OFF_S:          blink_state_cnt <= 0;
             YELLOW_BLINK_S: blink_state_cnt <= ( end_blink ) ? '0 : blink_state_cnt + 1'b1;
-            GREEN_BLINK_S:  
+            GREEN_BLINK_S:
               begin
                 if(cmd_valid_i && cmd_type_i == 3'b010 )
                   blink_state_cnt <= 0;
