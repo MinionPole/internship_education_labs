@@ -25,10 +25,10 @@ module traffic_lights #(
                      YELLOW_BLINK_S } state, next_state;
 
   localparam logic[31:0] CLK_KHZ = 2;
-  localparam logic[31:0] GREEN_BLINK_TIME_MS = BLINK_HALF_PERIOD_MS * (2 * BLINK_GREEN_TIME_TICK);
-  logic[31:0] red_time_ms, yellow_time_ms, green_time_ms;
-  logic[31:0] red_time_clk, yellow_time_clk, green_time_clk, red_yellow_time_clk, blink_state_clk, green_blink_time_clk;
-  logic[31:0] state_cnt, blink_state_cnt;
+  localparam logic[15:0] GREEN_BLINK_TIME_MS = BLINK_HALF_PERIOD_MS * (2 * BLINK_GREEN_TIME_TICK);
+  logic[15:0] red_time_ms, yellow_time_ms, green_time_ms;
+  logic[47:0] red_time_clk, yellow_time_clk, green_time_clk, red_yellow_time_clk, blink_state_clk, green_blink_time_clk;
+  logic[47:0] state_cnt, blink_state_cnt;
 
   assign red_time_clk         = CLK_KHZ * red_time_ms - 1;
   
