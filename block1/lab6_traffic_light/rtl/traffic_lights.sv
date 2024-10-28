@@ -28,7 +28,8 @@ module traffic_lights #(
   localparam logic[15:0] GREEN_BLINK_TIME_MS = BLINK_HALF_PERIOD_MS * (2 * BLINK_GREEN_TIME_TICK);
   logic[15:0] red_time_ms, yellow_time_ms, green_time_ms;
   logic[47:0] red_time_clk, yellow_time_clk, green_time_clk, red_yellow_time_clk, blink_state_clk, green_blink_time_clk;
-  logic[47:0] state_cnt, blink_state_cnt;
+  logic[47:0] state_cnt;
+  logic[$clog2(CLK_KHZ * BLINK_HALF_PERIOD_MS * 2 - 1):0] blink_state_cnt;
 
   assign red_time_clk         = CLK_KHZ * red_time_ms - 1;
   
@@ -45,7 +46,7 @@ module traffic_lights #(
   always_ff @( posedge clk_i )
     begin
       if(srst_i)
-        red_time_ms <= 100;
+        red_time_ms <= 2;
       else
         if(state == YELLOW_BLINK_S && cmd_valid_i && cmd_type_i == 3'b100)
           red_time_ms <= cmd_data_i;
@@ -70,12 +71,42 @@ module traffic_lights #(
     end
 
   logic end_green, end_red, end_red_yellow, end_yellow, end_green_blink, end_blink;
-  assign end_red         = ( state_cnt       == red_time_clk);
-  assign end_red_yellow  = ( state_cnt       == red_yellow_time_clk);
-  assign end_green       = ( state_cnt       == green_time_clk);
-  assign end_yellow      = ( state_cnt       == yellow_time_clk);
-  assign end_green_blink = ( state_cnt       == green_blink_time_clk);
-  assign end_blink       = ( blink_state_cnt == blink_state_clk);
+  
+  always_ff @( posedge clk_i )
+    if( srst_i )
+      end_red <= 0;
+    else
+      end_red  <= ( state_cnt == (red_time_clk - 1));
+  
+  always_ff @( posedge clk_i )
+    if( srst_i )
+      end_red_yellow <= 0;
+    else
+      end_red_yellow  <= ( state_cnt == (red_yellow_time_clk - 1));
+
+  always_ff @( posedge clk_i )
+    if( srst_i )
+      end_green <= 0;
+    else
+      end_green  <= ( state_cnt == (green_time_clk - 1));
+  
+  always_ff @( posedge clk_i )
+    if( srst_i )
+      end_yellow <= 0;
+    else
+      end_yellow  <= ( state_cnt == (yellow_time_clk - 1));
+  
+  always_ff @( posedge clk_i )
+    if( srst_i )
+      end_green_blink <= 0;
+    else
+      end_green_blink  <= ( state_cnt == (green_blink_time_clk - 1));
+
+  always_ff @( posedge clk_i )
+    if( srst_i )
+      end_blink <= 0;
+    else
+      end_blink  <= ( blink_state_cnt == (blink_state_clk - 1));
 
   always_ff @( posedge clk_i )
     begin
@@ -135,19 +166,20 @@ module traffic_lights #(
 
         RED_S:
           begin
-            if(state_cnt == red_time_clk)
+            //$display("time is %d, cnt is %d", $time(), state_cnt);
+            if(end_red)
               next_state = RED_YELLOW_S;
           end
 
         RED_YELLOW_S:
           begin
-            if(state_cnt == red_yellow_time_clk)
+            if(end_red_yellow)
               next_state = GREEN_S;
           end
 
         GREEN_S:
           begin
-            if(state_cnt == green_time_clk)
+            if(end_green)
               if(BLINK_GREEN_TIME_TICK != 0)
                 next_state = GREEN_BLINK_S;
               else
@@ -156,13 +188,13 @@ module traffic_lights #(
 
         GREEN_BLINK_S:
           begin
-            if(state_cnt == green_blink_time_clk)
+            if(end_green_blink)
               next_state = YELLOW_S;
           end
 
         YELLOW_S:
           begin
-            if(state_cnt == yellow_time_clk)
+            if(end_yellow)
               next_state = RED_S;
           end
 

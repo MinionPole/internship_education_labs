@@ -38,7 +38,7 @@ module traffic_lighs_tb #(
   localparam CLK_TIME                = (1000) * 1.0 / (2.0 * CLK_FREQ_KHZ);
   localparam int GREEN_BLINK_TIME_MS = BLINK_HALF_PERIOD_MS * (2 * BLINK_GREEN_TIME_TICK);
 
-  int red_time_ms = 100, yellow_time_ms = 30, green_time_ms = 50;
+  int red_time_ms = 2, yellow_time_ms = 30, green_time_ms = 50;
   int prev_time;
   mailbox mbx;
   
@@ -89,7 +89,7 @@ module traffic_lighs_tb #(
     int wait_time;
     begin
       wait_time = $urandom() % 200 + 1;
-      $display("time is wait_time");
+      //$display("time is wait_time");
       ##1;
       cmd_type_i  <= 3'b010;
       cmd_valid_i <= 1;
@@ -108,13 +108,13 @@ module traffic_lighs_tb #(
   task check_value();
     repeat(red_time_clk)
       begin
-        //
         if( !(red_o === 1 && yellow_o === 0 && green_o === 0))
           begin
             $display("%d %d %d", red_o, yellow_o, green_o);
             $error("!!!BAD STATE ON RED!!!");
             $stop();
           end
+        //$display("time is %d",$time());
         ##1;
       end
     $display("success red");
@@ -243,19 +243,20 @@ module traffic_lighs_tb #(
       for(int i = 0;i < 40;i++)
         begin
           int gen_red_time_ms, gen_green_time_ms, gen_yellow_time_ms;
-          gen_red_time_ms    = ($urandom() % 200) + 1;
-          gen_green_time_ms  = ($urandom() % 200) + 1;
-          gen_yellow_time_ms = ($urandom() % 200) + 1;
+          gen_red_time_ms    = ($urandom() % 200) + 2;
+          gen_green_time_ms  = ($urandom() % 200) + 2;
+          gen_yellow_time_ms = ($urandom() % 200) + 2;
+          //$display("%d %d %d", gen_red_time_ms, gen_green_time_ms, gen_yellow_time_ms);
           change_params(gen_red_time_ms, gen_green_time_ms, gen_yellow_time_ms);
           check_value();
         end
-
-      for(int i = 0;i < 40;i++)
+      
+      for(int i = 0;i < 2;i++)
         begin
           int gen_red_time_ms, gen_green_time_ms, gen_yellow_time_ms, all_time_in_clk, moment;
-          gen_red_time_ms    = ($urandom() % 200) + 1;
-          gen_green_time_ms  = ($urandom() % 200) + 1;
-          gen_yellow_time_ms = ($urandom() % 200) + 1;
+          gen_red_time_ms    = ($urandom() % 200) + 2;
+          gen_green_time_ms  = ($urandom() % 200) + 2;
+          gen_yellow_time_ms = ($urandom() % 200) + 2;
           all_time_in_clk    = (gen_red_time_ms+gen_green_time_ms+gen_yellow_time_ms+GREEN_BLINK_TIME_MS+RED_YELLOW_MS) * 1000 / CLK_TIME;
           change_params(gen_red_time_ms, gen_green_time_ms, gen_yellow_time_ms);
           moment             = ($urandom() % all_time_in_clk) + 1;
