@@ -16,9 +16,12 @@ module fifo_tb#(
 
   logic [DWIDTH-1:0] q_o1;
   logic [DWIDTH-1:0] q_o2;
-  logic              empty_o;
-  logic              full_o;
-  logic [AWIDTH:0]   usedw_o;
+  logic              empty_o1;
+  logic              empty_o2;
+  logic              full_o1;
+  logic              full_o2;
+  logic [AWIDTH:0]   usedw_o1;
+  logic [$clog2(AWIDTH):0]   usedw_o2;
   logic              almost_full_o;
   logic              almost_empty_o;
 
@@ -36,10 +39,10 @@ module fifo_tb#(
     .wrreq_i               (wrreq_i           ),
     .rdreq_i               (rdreq_i           ),
 
-    .q_o                   (q_o1               ),
-    .empty_o               (empty_o           ),
-    .full_o                (full_o            ),
-    .usedw_o               (usedw_o           ),
+    .q_o                   (q_o1              ),
+    .empty_o               (empty_o1          ),
+    .full_o                (full_o1           ),
+    .usedw_o               (usedw_o1          ),
     .almost_full_o         (almost_full_o     ),
     .almost_empty_o        (almost_empty_o    )
   );
@@ -66,7 +69,10 @@ module fifo_tb#(
     .data(data_i),
     .wrreq(wrreq_i),
     .rdreq(rdreq_i),
-    .q(q_o2)
+    .q(q_o2),
+    .full(full_o2),
+    .empty(empty_o2),
+    .usedw(usedw_o2)
   );
 
   task make_srst();
@@ -84,7 +90,6 @@ module fifo_tb#(
   endclocking
 
   task insert(input int a);
-      ##1;
       data_i <= a;
       wrreq_i <= 1;
       ##1;
@@ -92,21 +97,102 @@ module fifo_tb#(
   endtask
 
   task remove;
-      ##1;
       rdreq_i <= 1;
       ##1;
       rdreq_i <= 0;
       $display("val is %d", q_o1);
   endtask
 
+  task ins_plus_rem(input int a);
+      ##1;
+      data_i <= a;
+      wrreq_i <= 1;
+      rdreq_i <= 1;
+      ##1;
+      wrreq_i <= 0;
+      rdreq_i <= 0;
+  endtask
+
+
+  task check_value();
+  longint data_from_mbx;
+    forever
+      begin
+        if(q_o1 != q_o2)
+          begin
+            $error("main outputs different");
+            $stop();
+          end
+        /*if(full_o1 != full_o2)
+          begin
+            $error("full_flag outputs different");
+            $stop();
+          end
+        if(empty_o1 != empty_o2)
+          begin
+            $error("empty_flag outputs different");
+            $stop();
+          end*/
+        ##1;
+      end
+  endtask
+
+  task generate_input();
+    int desicion;
+    automatic int value = '0;
+    
+    desicion = $urandom();
+    case (desicion % 2)
+        2'b00:
+          begin
+            //add
+            if(!full_o2)
+              begin
+                value = $urandom();
+                insert(value);
+              end
+          end
+        2'b01:
+          begin
+            if(!empty_o2)
+              begin
+                remove();
+              end
+            //rem
+          end
+        2'b10:
+          begin
+            //add+rem
+            if(!full_o2)
+              begin
+                value = $urandom();
+                ins_plus_rem(value);
+              end
+          end
+    endcase
+    ##1;
+  endtask
+
+
   initial
   begin
+
     make_srst();
     ##1;
+    fork
+      check_value();
+    join_none
     insert(1);
-    insert(2);
+    ##2
     remove();
-    ##10;
+    ##2;
+    /*insert(3);
+    insert(4);
+    ins_plus_rem(6);
+    ##5;
+    repeat(500) generate_input();
+    ##5;*/
+    $display("all test succed");
     $stop();
   end
 

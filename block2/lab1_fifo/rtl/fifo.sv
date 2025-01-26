@@ -21,93 +21,84 @@ module fifo #(
   output logic              almost_empty_o
 );
 
-  int last_el, ind;
-  logic[(1 << AWIDTH):0][DWIDTH - 1:0] data = '0;
+  logic[$clog2((2 ** AWIDTH) + 1):0] read_ind = '0;
+  logic[$clog2((2 ** AWIDTH) + 1):0] write_ind = '0;
+
+  logic[$clog2((2 ** AWIDTH) + 1):0] read_ind2;
+  logic [DWIDTH-1:0] q_o2;
+
+  memory #(
+  .DWIDTH ( DWIDTH ),
+  .AWIDTH ( (2 ** AWIDTH) + 1 )
+  ) memory_block (
+    .clk_i            (clk_i),
+
+    .data_write_i     (data_i),
+    .data_write_ind_i (write_ind),
+    .wrreq_i          (wrreq_i),
+
+    .data_read_ind_i  (read_ind2),
+    .rdreq_i          (1),
+
+    .readen_out       (q_o2)
+  );
 
   always_ff @(posedge clk_i)
     begin
-      if(srst_i)
+      if(srst_i == 1)
         begin
-          last_el <= (1 << AWIDTH);
+          read_ind <= '0;
         end
       else
         begin
-          //$display("%d", {wrreq_i, rdreq_i});
-          case({wrreq_i, rdreq_i})
-            1: last_el <= last_el + 1;
-            2: last_el <= last_el - 1;
-          endcase
+          if(rdreq_i)
+            if(read_ind != (2 ** AWIDTH))
+              read_ind <= read_ind + 1;
+            else
+              read_ind <= '0;
         end
     end
 
-    always_ff @(posedge clk_i)
+  always_ff @(posedge clk_i)
     begin
-      if(srst_i)
+      if(srst_i == 1)
         begin
-          for(int ind = (1 << AWIDTH); ind >= 0; ind--)
-            begin
-              data[ind] <= '0;
-            end
+          write_ind <= '0;
         end
       else
         begin
-          case({wrreq_i, rdreq_i})
-            1:
-              begin
-                for(int ind = (1 << AWIDTH); ind >= 1; ind--)
-                  begin
-                    $display("ind %d, el %d", ind, data[ind - 1]);
-                    data[ind] <= data[ind - 1];
-                  end
-              end
-            2:
-              begin
-                $display("ind %d, el %d", last_el, data_i);
-                data[last_el] <= data_i;
-              end
-            3:
-              begin
-                for(int ind = (1 << AWIDTH); ind >= 1; ind++)
-                  begin
-                    data[ind] <= data[ind - 1];
-                  end
-                data[last_el + 1] <= data_i;
-              end
-          endcase
+          if(wrreq_i)
+            if(write_ind != (2 ** AWIDTH))
+              write_ind <= write_ind + 1;
+            else
+              write_ind <= '0;
         end
     end
 
   always_comb
     begin
-      q_o = data[(1 << AWIDTH)];
-    end
-  
-  always_comb
-    begin
-      empty_o = (last_el == (1 << AWIDTH));
-    end
-  
-  always_comb
-    begin
-      full_o = (last_el == 0);
+      if(!rdreq_i)
+        read_ind2 = (read_ind);
+      else
+        read_ind2 = (read_ind + 1);
     end
 
   always_comb
     begin
-      usedw_o = ((1 << AWIDTH) - last_el);
-    end
-  
-  always_comb
-    begin
-      almost_full_o = (((1 << AWIDTH) - last_el) > ALMOST_FULL_VALUE);
+      if(empty_o)
+        q_o = '0;
+      else
+        q_o = q_o2;
     end
 
   always_comb
     begin
-      almost_empty_o = (((1 << AWIDTH) - last_el) < ALMOST_EMPTY_VALUE);
+      full_o = (read_ind + 1 == write_ind);
     end
-
-
   
+  always_comb
+    begin
+      empty_o = (read_ind == write_ind);
+    end
 
 endmodule
