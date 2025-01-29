@@ -6,12 +6,12 @@ module fifo #(
   parameter ALMOST_EMPTY_VALUE = 2,
   parameter REGISTER_OUTPUT    = 0
 )(
-  input               clk_i,
+  input                     clk_i,
 
-  input               srst_i,
-  input [DWIDTH-1:0]  data_i,
-  input               wrreq_i,
-  input               rdreq_i,
+  input                     srst_i,
+  input [DWIDTH-1:0]        data_i,
+  input                     wrreq_i,
+  input                     rdreq_i,
 
   output logic [DWIDTH-1:0] q_o,
   output logic              empty_o,
@@ -21,9 +21,9 @@ module fifo #(
   output logic              almost_empty_o
 );
 
-  logic [$clog2((1 << AWIDTH) + 1):0] read_ind = '0;
+  logic [$clog2((1 << AWIDTH) + 1):0] read_ind  = '0;
   logic [$clog2((1 << AWIDTH) + 1):0] write_ind = '0;
-  logic [AWIDTH:0] size = '0;
+  logic [AWIDTH:0]                    size      = '0;
   logic [DWIDTH-1:0] q_o2;
 
   // on rdreq_i flag we need already read from the future el
@@ -103,7 +103,7 @@ module fifo #(
               write_ind <= '0;
         end
     end
-  
+
   always_comb
     begin
       if(write_ind >= read_ind)

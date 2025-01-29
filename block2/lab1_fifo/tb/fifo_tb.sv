@@ -50,33 +50,33 @@ module fifo_tb#(
   );
 
   scfifo #(
-  .lpm_width ( DWIDTH ),
-  .lpm_widthu ( AWIDTH ),
-  .lpm_numwords ( 2 ** AWIDTH ),
-  .lpm_showahead ( "ON" ),
-  .lpm_type ( "scfifo" ),
-  .lpm_hint ( "RAM_BLOCK_TYPE=M10K" ),
-  .intended_device_family ( "Cyclone V" ),
-  .underflow_checking ( "ON" ),
-  .overflow_checking ( "ON" ),
-  .allow_rwcycle_when_full ( "OFF" ),
-  .use_eab ( "ON" ),
-  .add_ram_output_register ( "OFF" ),
-  .almost_full_value ( ALMOST_FULL_VALUE ),
-  .almost_empty_value ( ALMOST_EMPTY_VALUE ),
-  .maximum_depth ( 0 ),
-  .enable_ecc ( "FALSE" )
+  .lpm_width               ( DWIDTH                ),
+  .lpm_widthu              ( AWIDTH                ),
+  .lpm_numwords            ( 2 ** AWIDTH           ),
+  .lpm_showahead           ( "ON"                  ),
+  .lpm_type                ( "scfifo"              ),
+  .lpm_hint                ( "RAM_BLOCK_TYPE=M10K" ),
+  .intended_device_family  ( "Cyclone V"           ),
+  .underflow_checking      ( "ON"                  ),
+  .overflow_checking       ( "ON"                  ),
+  .allow_rwcycle_when_full ( "OFF"                 ),
+  .use_eab                 ( "ON"                  ),
+  .add_ram_output_register ( "OFF"                 ),
+  .almost_full_value       ( ALMOST_FULL_VALUE     ),
+  .almost_empty_value      ( ALMOST_EMPTY_VALUE    ),
+  .maximum_depth           ( 0                     ),
+  .enable_ecc              ( "FALSE"               )
   ) golden_model (
-    .clock(clk),
-    .data(data_i),
-    .wrreq(wrreq_i),
-    .rdreq(rdreq_i),
-    .q(q_o2),
-    .full(full_o2),
-    .empty(empty_o2),
-    .usedw(usedw_o2),
-    .almost_full(almost_full_o2),
-    .almost_empty(almost_empty_o2)
+    .clock                 ( clk                   ),
+    .data                  ( data_i                ),
+    .wrreq                 ( wrreq_i               ),
+    .rdreq                 ( rdreq_i               ),
+    .q                     ( q_o2                  ),
+    .full                  ( full_o2               ),
+    .empty                 ( empty_o2              ),
+    .usedw                 ( usedw_o2              ),
+    .almost_full           ( almost_full_o2        ),
+    .almost_empty          ( almost_empty_o2       )
   );
 
   task make_srst();
@@ -150,7 +150,7 @@ module fifo_tb#(
           begin
             $error("almost_empty outputs different");
             $stop();
-          end  
+          end
         ##1;
       end
   endtask
@@ -172,11 +172,11 @@ module fifo_tb#(
           end
         2'b01:
           begin
+            //rem
             if(!empty_o2)
               begin
                 remove();
               end
-            //rem
           end
         2'b10:
           begin
@@ -188,7 +188,7 @@ module fifo_tb#(
               end
           end
     endcase
-    //##1; // без него вроде тоже работает
+    //##1;
   endtask
 
 
