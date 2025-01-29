@@ -16,6 +16,19 @@ proc runtest {i j} {
   add wave /fifo_tb/q_o1
   add wave /fifo_tb/q_o2
   add wave /fifo_tb/empty_o2
+  add wave /fifo_tb/empty_o1
+  add wave /fifo_tb/full_o2
+  add wave /fifo_tb/full_o1
+
+  add wave /fifo_tb/usedw_o1
+  add wave /fifo_tb/usedw_o2
+
+  add wave /fifo_tb/almost_full_o1
+  add wave /fifo_tb/almost_full_o2
+
+  add wave /fifo_tb/almost_empty_o1
+  add wave /fifo_tb/almost_empty_o2
+
   run -all
 }
 

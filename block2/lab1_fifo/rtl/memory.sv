@@ -1,6 +1,6 @@
 module memory #(
   parameter DWIDTH             = 4,
-  parameter AWIDTH             = 1024
+  parameter AWIDTH             = 128
 )(
   input                     clk_i,
 
@@ -13,7 +13,7 @@ module memory #(
   output logic [DWIDTH-1:0] readen_out
 );
 
-  logic[AWIDTH - 1:0][DWIDTH - 1:0] data;
+  logic[DWIDTH - 1:0] data[AWIDTH - 1:0];
 
   always_ff @(posedge clk_i)
     begin
@@ -26,7 +26,9 @@ module memory #(
   always_ff @(posedge clk_i)
     begin
       if(rdreq_i)
-        readen_out <= data[data_read_ind_i];
+        begin
+          readen_out <= data[data_read_ind_i];
+        end
     end
 
 endmodule

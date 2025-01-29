@@ -1,6 +1,6 @@
 module fifo_tb#(
   parameter DWIDTH             = 4,
-  parameter AWIDTH             = 3,
+  parameter AWIDTH             = 7,
   parameter SHOWAHEAD          = 1,
   parameter ALMOST_FULL_VALUE  = 6,
   parameter ALMOST_EMPTY_VALUE = 2,
@@ -14,37 +14,39 @@ module fifo_tb#(
   logic               wrreq_i = '0;
   logic               rdreq_i = '0;
 
-  logic [DWIDTH-1:0] q_o1;
-  logic [DWIDTH-1:0] q_o2;
-  logic              empty_o1;
-  logic              empty_o2;
-  logic              full_o1;
-  logic              full_o2;
-  logic [AWIDTH:0]   usedw_o1;
-  logic [$clog2(AWIDTH):0]   usedw_o2;
-  logic              almost_full_o;
-  logic              almost_empty_o;
+  logic [DWIDTH-1:0]         q_o1;
+  logic [DWIDTH-1:0]         q_o2;
+  logic                      empty_o1;
+  logic                      empty_o2;
+  logic                      full_o1;
+  logic                      full_o2;
+  logic [AWIDTH:0]           usedw_o1;
+  logic [AWIDTH-1:0]   usedw_o2;
+  logic                      almost_full_o1;
+  logic                      almost_empty_o1;
+  logic                      almost_full_o2;
+  logic                      almost_empty_o2;
 
   fifo#(
-    .DWIDTH             ( DWIDTH ),
-    .AWIDTH             ( AWIDTH),
+    .DWIDTH             ( DWIDTH               ),
+    .AWIDTH             ( AWIDTH               ),
     .SHOWAHEAD          ( SHOWAHEAD            ),
     .ALMOST_FULL_VALUE  ( ALMOST_FULL_VALUE    ),
     .ALMOST_EMPTY_VALUE ( ALMOST_EMPTY_VALUE   ),
     .REGISTER_OUTPUT    ( REGISTER_OUTPUT      )
   ) fifo_dut (
-    .clk_i                 (clk               ),
-    .srst_i                (srst              ),
-    .data_i                (data_i            ),
-    .wrreq_i               (wrreq_i           ),
-    .rdreq_i               (rdreq_i           ),
+    .clk_i              (clk                   ),
+    .srst_i             (srst                  ),
+    .data_i             (data_i                ),
+    .wrreq_i            (wrreq_i               ),
+    .rdreq_i            (rdreq_i               ),
 
-    .q_o                   (q_o1              ),
-    .empty_o               (empty_o1          ),
-    .full_o                (full_o1           ),
-    .usedw_o               (usedw_o1          ),
-    .almost_full_o         (almost_full_o     ),
-    .almost_empty_o        (almost_empty_o    )
+    .q_o                (q_o1                  ),
+    .empty_o            (empty_o1              ),
+    .full_o             (full_o1               ),
+    .usedw_o            (usedw_o1              ),
+    .almost_full_o      (almost_full_o1        ),
+    .almost_empty_o     (almost_empty_o1       )
   );
 
   scfifo #(
@@ -72,7 +74,9 @@ module fifo_tb#(
     .q(q_o2),
     .full(full_o2),
     .empty(empty_o2),
-    .usedw(usedw_o2)
+    .usedw(usedw_o2),
+    .almost_full(almost_full_o2),
+    .almost_empty(almost_empty_o2)
   );
 
   task make_srst();
@@ -104,7 +108,6 @@ module fifo_tb#(
   endtask
 
   task ins_plus_rem(input int a);
-      ##1;
       data_i <= a;
       wrreq_i <= 1;
       rdreq_i <= 1;
@@ -123,7 +126,7 @@ module fifo_tb#(
             $error("main outputs different");
             $stop();
           end
-        /*if(full_o1 != full_o2)
+        if(full_o1 != full_o2)
           begin
             $error("full_flag outputs different");
             $stop();
@@ -132,7 +135,22 @@ module fifo_tb#(
           begin
             $error("empty_flag outputs different");
             $stop();
-          end*/
+          end
+        if(usedw_o1[AWIDTH-1:0] != usedw_o2)
+          begin
+            $error("usedw outputs different");
+            $stop();
+          end
+        if(almost_full_o1 != almost_full_o2)
+          begin
+            $error("almost_full outputs different");
+            $stop();
+          end
+        if(almost_empty_o1 != almost_empty_o2)
+          begin
+            $error("almost_empty outputs different");
+            $stop();
+          end  
         ##1;
       end
   endtask
@@ -142,7 +160,7 @@ module fifo_tb#(
     automatic int value = '0;
     
     desicion = $urandom();
-    case (desicion % 2)
+    case (desicion % 3)
         2'b00:
           begin
             //add
@@ -163,14 +181,14 @@ module fifo_tb#(
         2'b10:
           begin
             //add+rem
-            if(!full_o2)
+            if(!full_o2 && !empty_o2)
               begin
                 value = $urandom();
                 ins_plus_rem(value);
               end
           end
     endcase
-    ##1;
+    //##1; // без него вроде тоже работает
   endtask
 
 
@@ -184,14 +202,18 @@ module fifo_tb#(
     join_none
     insert(1);
     ##2
+    insert(2);
+    ##2
     remove();
     ##2;
-    /*insert(3);
+    insert(3);
     insert(4);
     ins_plus_rem(6);
     ##5;
     repeat(500) generate_input();
-    ##5;*/
+    ##5;
+    repeat(10000) generate_input();
+    ##5;
     $display("all test succed");
     $stop();
   end
