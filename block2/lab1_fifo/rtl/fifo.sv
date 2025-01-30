@@ -33,9 +33,7 @@ module fifo #(
 
   logic  read_allow;
   assign read_allow      = (rdreq_i || (writen_to_empty));
-  assign usedw_o         = size;
-  assign almost_full_o   = (size >= ALMOST_FULL_VALUE);
-  assign almost_empty_o  = (size < ALMOST_EMPTY_VALUE);
+  //assign almost_empty_o  = (size < ALMOST_EMPTY_VALUE);
 
   memory #(
   .DWIDTH ( DWIDTH ),
@@ -57,23 +55,47 @@ module fifo #(
     begin
       if(srst_i)
         begin
-          writen_to_empty <= 0;
+          usedw_o <= '0;
         end
       else
         begin
-          writen_to_empty <= 0;
-          if(read_ind == write_ind)
-            begin
-              if(wrreq_i)
-                writen_to_empty <= 1;
-            end
-          else
-            if(size == 1)
-              if(wrreq_i && rdreq_i)
-                writen_to_empty <= 1;     
+          if(rdreq_i && !wrreq_i)
+            usedw_o <= size - 1;
+          if(!rdreq_i && wrreq_i)
+            usedw_o <= size + 1;
         end
     end
 
+  always_ff @(posedge clk_i)
+    begin
+      if(srst_i)
+        begin
+          almost_full_o <= '0;
+        end
+      else
+        begin
+          if(rdreq_i && !wrreq_i)
+            almost_full_o <= (size - 1 >= ALMOST_FULL_VALUE);
+          if(!rdreq_i && wrreq_i)
+            almost_full_o <= (size + 1 >= ALMOST_FULL_VALUE);
+        end
+    end
+
+  always_ff @(posedge clk_i)
+    begin
+      if(srst_i)
+        begin
+          almost_empty_o <= '1;
+        end
+      else
+        begin
+          if(rdreq_i && !wrreq_i)
+            almost_empty_o <= (size - 1 < ALMOST_EMPTY_VALUE);
+          if(!rdreq_i && wrreq_i)
+            almost_empty_o <= (size + 1 < ALMOST_EMPTY_VALUE);
+        end
+    end
+  
   always_ff @(posedge clk_i)
     begin
       if(srst_i)
@@ -127,7 +149,7 @@ module fifo #(
 
   always_comb
     begin
-      if(!empty_o)
+      if(!((read_ind == write_ind || writen_to_empty)))
         q_o = q_o2;
       else
         q_o = '0;
@@ -150,9 +172,41 @@ module fifo #(
         end
     end
 
-  always_comb
+  always_ff @(posedge clk_i)
     begin
-      empty_o = (read_ind == write_ind || writen_to_empty);
+      if(srst_i)
+        begin
+          writen_to_empty <= 0;
+        end
+      else
+        begin
+          writen_to_empty <= 0;
+          if(size == 0)
+            begin
+              if(wrreq_i)
+                writen_to_empty <= 1;
+            end
+          else
+            if(size == 1)
+              if(wrreq_i && rdreq_i)
+                writen_to_empty <= 1;     
+        end
     end
 
+  always_ff @(posedge clk_i)
+    begin
+      if(srst_i)
+        empty_o <= 1;
+      else
+        begin
+          empty_o <= 0;
+          if(size == 0 && !wrreq_i && !rdreq_i)
+            empty_o <= 1;
+          if(size == 0 && wrreq_i)
+            empty_o <= 1;
+          if(size == 1 && rdreq_i)
+            empty_o <= 1; 
+         end
+
+    end
 endmodule
