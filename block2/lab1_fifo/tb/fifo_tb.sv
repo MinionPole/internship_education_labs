@@ -201,11 +201,27 @@ module fifo_tb#(
       check_value();
     join_none
     insert(1);
-    ##2
+    ##1
     insert(2);
-    ##2
+    ##1
     remove();
-    ##2;
+    ##1;
+    remove();
+    ##1;
+    // full cap
+    for (int i = 0; i < 2 ** AWIDTH; i++) begin
+      insert(1);
+      ##1;
+    end
+    for (int i = 0; i < 2 ** AWIDTH; i++) begin
+      remove();
+      ##1;
+    end
+    // one elem
+    insert(1);
+    ##1
+    remove();
+    ##1;
     insert(3);
     insert(4);
     ins_plus_rem(6);

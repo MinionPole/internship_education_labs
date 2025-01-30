@@ -64,11 +64,14 @@ module fifo #(
         begin
           writen_to_empty <= 0;
           if(read_ind == write_ind)
-            if(wrreq_i)
-              writen_to_empty <= 1;
-          if(size == 1)
-            if(wrreq_i && rdreq_i)
-              writen_to_empty <= 1;
+            begin
+              if(wrreq_i)
+                writen_to_empty <= 1;
+            end
+          else
+            if(size == 1)
+              if(wrreq_i && rdreq_i)
+                writen_to_empty <= 1;     
         end
     end
 
