@@ -31,12 +31,11 @@ module fifo #(
 
   logic writen_to_empty;
 
-  logic read_allow;
+  logic  read_allow;
   assign read_allow      = (rdreq_i || (writen_to_empty));
   assign usedw_o         = size;
   assign almost_full_o   = (size >= ALMOST_FULL_VALUE);
   assign almost_empty_o  = (size < ALMOST_EMPTY_VALUE);
-
 
   memory #(
   .DWIDTH ( DWIDTH ),
@@ -133,12 +132,24 @@ module fifo #(
       else
         q_o = '0;
     end
-
-  always_comb
-    begin
-      full_o = (read_ind == write_ind + 1'b1) || (read_ind == 0 && write_ind == (1 << AWIDTH));
-    end
   
+  always_ff @(posedge clk_i)
+    begin
+      if(srst_i)
+        begin
+          full_o <= '0;
+        end
+      else
+        begin
+          if(size + 1 == (1 << AWIDTH))
+            if(wrreq_i)
+              full_o <= 1'b1;
+          if(full_o)
+            if(rdreq_i)
+              full_o <= 1'b0;
+        end
+    end
+
   always_comb
     begin
       empty_o = (read_ind == write_ind || writen_to_empty);
