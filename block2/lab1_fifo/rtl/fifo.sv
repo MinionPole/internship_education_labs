@@ -21,13 +21,13 @@ module fifo #(
   output logic              almost_empty_o
 );
 
-  logic [$clog2((1 << AWIDTH) + 1):0] read_ind;
-  logic [$clog2((1 << AWIDTH) + 1):0] write_ind;
+  logic [(AWIDTH + 1):0] read_ind;
+  logic [(AWIDTH + 1):0] write_ind;
   logic [AWIDTH:0]                    size;
   logic [DWIDTH-1:0] q_o2;
 
   // on rdreq_i flag we need already read from the future el
-  logic[$clog2((1 << AWIDTH) + 1):0] read_ind_memory;
+  logic[(AWIDTH + 1):0] read_ind_memory;
 
   logic writen_to_empty;
 
@@ -51,7 +51,8 @@ module fifo #(
     .readen_out       (q_o2)
   );
 
-  always_ff @(posedge clk_i)
+  assign usedw_o = size;
+  /*always_ff @(posedge clk_i)
     begin
       if(srst_i)
         begin
@@ -65,7 +66,7 @@ module fifo #(
             if(!rdreq_i && wrreq_i)
               usedw_o <= size + 1;
         end
-    end
+    end*/
 
   always_ff @(posedge clk_i)
     begin
@@ -131,12 +132,18 @@ module fifo #(
         end
     end
 
-  always_comb
+  always_ff @(posedge clk_i)
     begin
-      if(write_ind >= read_ind)
-        size = write_ind - read_ind;
+      if(srst_i)
+        size <= 0;
       else
-        size = ((1 << AWIDTH) - read_ind + 1'b1) +  write_ind;
+        begin
+          if(!rdreq_i && wrreq_i)
+            size <= size + 1;
+          else
+            if(rdreq_i && !wrreq_i)
+              size <= size - 1;
+        end
     end
 
   always_comb
