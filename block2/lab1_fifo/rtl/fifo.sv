@@ -61,8 +61,9 @@ module fifo #(
         begin
           if(rdreq_i && !wrreq_i)
             usedw_o <= size - 1;
-          if(!rdreq_i && wrreq_i)
-            usedw_o <= size + 1;
+          else
+            if(!rdreq_i && wrreq_i)
+              usedw_o <= size + 1;
         end
     end
 
@@ -76,8 +77,9 @@ module fifo #(
         begin
           if(rdreq_i && !wrreq_i)
             almost_full_o <= (size - 1 >= ALMOST_FULL_VALUE);
-          if(!rdreq_i && wrreq_i)
-            almost_full_o <= (size + 1 >= ALMOST_FULL_VALUE);
+          else
+            if(!rdreq_i && wrreq_i)
+              almost_full_o <= (size + 1 >= ALMOST_FULL_VALUE);
         end
     end
 
@@ -91,8 +93,9 @@ module fifo #(
         begin
           if(rdreq_i && !wrreq_i)
             almost_empty_o <= (size - 1 < ALMOST_EMPTY_VALUE);
-          if(!rdreq_i && wrreq_i)
-            almost_empty_o <= (size + 1 < ALMOST_EMPTY_VALUE);
+          else
+            if(!rdreq_i && wrreq_i)
+              almost_empty_o <= (size + 1 < ALMOST_EMPTY_VALUE);
         end
     end
   
@@ -142,9 +145,9 @@ module fifo #(
         read_ind_memory = (read_ind);
       else
         if(read_ind != (1 << AWIDTH))
-              read_ind_memory = read_ind + 1'b1;
-            else
-              read_ind_memory = '0;
+          read_ind_memory = read_ind + 1'b1;
+        else
+          read_ind_memory = '0;
     end
 
   always_comb
@@ -163,11 +166,10 @@ module fifo #(
         end
       else
         begin
-          if(size + 1 == (1 << AWIDTH))
-            if(wrreq_i)
-              full_o <= 1'b1;
-          if(full_o)
-            if(rdreq_i)
+          if(size + 1 == (1 << AWIDTH) && wrreq_i)
+            full_o <= 1'b1;
+          else
+            if(full_o && rdreq_i)
               full_o <= 1'b0;
         end
     end
@@ -199,13 +201,17 @@ module fifo #(
         empty_o <= 1;
       else
         begin
-          empty_o <= 0;
+          //empty_o <= 0;
           if(size == 0 && !wrreq_i && !rdreq_i)
             empty_o <= 1;
-          if(size == 0 && wrreq_i)
-            empty_o <= 1;
-          if(size == 1 && rdreq_i)
-            empty_o <= 1; 
+          else
+            if(size == 0 && wrreq_i)
+              empty_o <= 1;
+            else
+              if(size == 1 && rdreq_i)
+                empty_o <= 1; 
+              else
+                empty_o <= 0; 
          end
 
     end
