@@ -209,11 +209,11 @@ module fifo_tb#(
     remove();
     ##1;
     // full cap
-    for (int i = 0; i < 2 ** AWIDTH+1; i++) begin
+    for (int i = 0; i < 2 ** AWIDTH; i++) begin
       insert(1);
       ##1;
     end
-    for (int i = 0; i < 2 ** AWIDTH+1; i++) begin
+    for (int i = 0; i < 2 ** AWIDTH; i++) begin
       remove();
       ##1;
     end
