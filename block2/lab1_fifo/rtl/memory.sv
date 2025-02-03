@@ -1,19 +1,19 @@
 module memory #(
   parameter DWIDTH             = 4,
-  parameter AWIDTH             = 128
+  parameter AWIDTH             = 8
 )(
   input                     clk_i,
 
   input [DWIDTH-1:0]        data_write_i,
-  input [$clog2(AWIDTH):0]  data_write_ind_i,
+  input [AWIDTH-1:0]  data_write_ind_i,
   input                     wrreq_i,
-  input [$clog2(AWIDTH):0]  data_read_ind_i,
+  input [AWIDTH-1:0]  data_read_ind_i,
   input                     rdreq_i,
 
   output logic [DWIDTH-1:0] readen_out
 );
 
-  logic[DWIDTH - 1:0] data[AWIDTH - 1:0];
+  logic[DWIDTH - 1:0] data[(1 << AWIDTH) - 1:0];
 
   always_ff @(posedge clk_i)
     begin

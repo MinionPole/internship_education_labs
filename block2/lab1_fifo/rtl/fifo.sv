@@ -37,7 +37,7 @@ module fifo #(
 
   memory #(
   .DWIDTH ( DWIDTH ),
-  .AWIDTH ( (1 << AWIDTH) + 1 )
+  .AWIDTH ( AWIDTH + 1 )
   ) memory_block (
     .clk_i            (clk_i),
 
@@ -52,21 +52,6 @@ module fifo #(
   );
 
   assign usedw_o = size;
-  /*always_ff @(posedge clk_i)
-    begin
-      if(srst_i)
-        begin
-          usedw_o <= '0;
-        end
-      else
-        begin
-          if(rdreq_i && !wrreq_i)
-            usedw_o <= size - 1;
-          else
-            if(!rdreq_i && wrreq_i)
-              usedw_o <= size + 1;
-        end
-    end*/
 
   always_ff @(posedge clk_i)
     begin
@@ -173,7 +158,7 @@ module fifo #(
         end
       else
         begin
-          if(size + 1 == (1 << AWIDTH) && wrreq_i)
+          if(size + 1 == (1 << AWIDTH) && wrreq_i && !rdreq_i)
             full_o <= 1'b1;
           else
             if(full_o && rdreq_i)

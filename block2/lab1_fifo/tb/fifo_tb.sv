@@ -104,7 +104,7 @@ module fifo_tb#(
       rdreq_i <= 1;
       ##1;
       rdreq_i <= 0;
-      $display("val is %d", q_o1);
+      //$display("val is %d", q_o1);
   endtask
 
   task ins_plus_rem(input int a);
@@ -115,7 +115,6 @@ module fifo_tb#(
       wrreq_i <= 0;
       rdreq_i <= 0;
   endtask
-
 
   task check_value();
   longint data_from_mbx;
@@ -191,23 +190,24 @@ module fifo_tb#(
     //##1;
   endtask
 
-
-  initial
-  begin
-
-    make_srst();
-    ##1;
-    fork
-      check_value();
-    join_none
+  task solo_elem_op();
+    // one elem
     insert(1);
     ##1
-    insert(2);
+    remove();
+    ##1;
+    $display("solo add_remove correct");
+    
+    insert(1);
     ##1
-    remove();
+    ins_plus_rem(2);
     ##1;
     remove();
     ##1;
+    $display("solo add_add/remove_remove correct");
+  endtask
+
+  task to_full_to_empty();
     // full cap
     for (int i = 0; i < 2 ** AWIDTH; i++) begin
       insert(1);
@@ -217,18 +217,46 @@ module fifo_tb#(
       remove();
       ##1;
     end
-    // one elem
-    insert(1);
-    ##1
-    remove();
+    $display("full_to_empty correct");
+    // almost_full cap
+    for (int i = 0; i < 2 ** AWIDTH-1; i++) begin
+      insert(1);
+      ##1;
+    end
+    ins_plus_rem(2);
     ##1;
-    insert(3);
-    insert(4);
-    ins_plus_rem(6);
-    ##5;
+    for (int i = 0; i < 2 ** AWIDTH-1; i++) begin
+      remove();
+      ##1;
+    end
+    $display("Full_add/remove_toEmpty correct");
+  endtask
+
+  task small_random_test();
     repeat(500) generate_input();
+    $display("small_random_test correct");
+  endtask
+
+  task big_random_test();
+    repeat(500) generate_input();
+    $display("big_random_test correct");
+  endtask
+
+  initial
+  begin
+
+    make_srst();
+    ##1;
+    fork
+      check_value();
+    join_none
+    ##1;
+    solo_elem_op();
+    to_full_to_empty();
     ##5;
-    repeat(10000) generate_input();
+    small_random_test();
+    ##5;
+    big_random_test();
     ##5;
     $display("all test succed");
     $stop();
