@@ -120,32 +120,32 @@ module fifo_tb#(
   longint data_from_mbx;
     forever
       begin
-        if(q_o1 != q_o2)
+        if(q_o1 !== q_o2)
           begin
             $error("main outputs different");
             $stop();
           end
-        if(full_o1 != full_o2)
+        if(full_o1 !== full_o2)
           begin
             $error("full_flag outputs different");
             $stop();
           end
-        if(empty_o1 != empty_o2)
+        if(empty_o1 !== empty_o2)
           begin
             $error("empty_flag outputs different");
             $stop();
           end
-        if(usedw_o1[AWIDTH-1:0] != usedw_o2)
+        if(usedw_o1[AWIDTH-1:0] !== usedw_o2)
           begin
             $error("usedw outputs different");
             $stop();
           end
-        if(almost_full_o1 != almost_full_o2)
+        if(almost_full_o1 !== almost_full_o2)
           begin
             $error("almost_full outputs different");
             $stop();
           end
-        if(almost_empty_o1 != almost_empty_o2)
+        if(almost_empty_o1 !== almost_empty_o2)
           begin
             $error("almost_empty outputs different");
             $stop();
@@ -211,25 +211,63 @@ module fifo_tb#(
     // full cap
     for (int i = 0; i < 2 ** AWIDTH; i++) begin
       insert(1);
-      ##1;
     end
     for (int i = 0; i < 2 ** AWIDTH; i++) begin
       remove();
-      ##1;
     end
     $display("full_to_empty correct");
-    // almost_full cap
+    // full-1 cap
     for (int i = 0; i < 2 ** AWIDTH-1; i++) begin
       insert(1);
-      ##1;
     end
     ins_plus_rem(2);
     ##1;
     for (int i = 0; i < 2 ** AWIDTH-1; i++) begin
       remove();
-      ##1;
     end
     $display("Full_add/remove_toEmpty correct");
+  endtask
+
+  task to_almostFull_to_empty();
+    // almost_full cap
+    for (int i = 0; i < ALMOST_FULL_VALUE; i++) begin
+      insert(1);
+    end
+    for (int i = 0; i < ALMOST_FULL_VALUE; i++) begin
+      remove();
+    end
+    $display("almostFull_to_empty correct");
+    // almost_full-1 cap
+    for (int i = 0; i < ALMOST_FULL_VALUE; i++) begin
+      insert(1);
+    end
+    ins_plus_rem(2);
+    ##1;
+    for (int i = 0; i < ALMOST_FULL_VALUE; i++) begin
+      remove();
+    end
+    $display("almostFull_add/remove_toEmpty correct");
+  endtask
+
+  task to_almostEmpty_to_empty();
+    // almost_full cap
+    for (int i = 0; i < ALMOST_EMPTY_VALUE; i++) begin
+      insert(1);
+    end
+    for (int i = 0; i < ALMOST_EMPTY_VALUE; i++) begin
+      remove();
+    end
+    $display("almostEmpty_to_empty correct");
+    // almost_full-1 cap
+    for (int i = 0; i < ALMOST_EMPTY_VALUE; i++) begin
+      insert(1);
+    end
+    ins_plus_rem(2);
+    ##1;
+    for (int i = 0; i < ALMOST_EMPTY_VALUE; i++) begin
+      remove();
+    end
+    $display("almostEmpty_add/remove_toEmpty correct");
   endtask
 
   task small_random_test();
@@ -238,7 +276,7 @@ module fifo_tb#(
   endtask
 
   task big_random_test();
-    repeat(500) generate_input();
+    repeat(10000) generate_input();
     $display("big_random_test correct");
   endtask
 
@@ -253,6 +291,8 @@ module fifo_tb#(
     ##1;
     solo_elem_op();
     to_full_to_empty();
+    to_almostFull_to_empty();
+    to_almostEmpty_to_empty();
     ##5;
     small_random_test();
     ##5;
