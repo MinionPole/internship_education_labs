@@ -21,13 +21,13 @@ module fifo #(
   output logic              almost_empty_o
 );
 
-  logic [(AWIDTH + 1):0] read_ind;
-  logic [(AWIDTH + 1):0] write_ind;
+  logic [(AWIDTH):0] read_ind;
+  logic [(AWIDTH):0] write_ind;
   logic [AWIDTH:0]                    size;
   logic [DWIDTH-1:0] q_o2;
 
   // on rdreq_i flag we need already read from the future el
-  logic[(AWIDTH + 1):0] read_ind_memory;
+  logic[(AWIDTH):0] read_ind_memory;
 
   logic writen_to_empty;
 

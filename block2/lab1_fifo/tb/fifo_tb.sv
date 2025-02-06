@@ -107,7 +107,7 @@ module fifo_tb#(
       //$display("val is %d", q_o1);
   endtask
 
-  task ins_plus_rem(input int a);
+  task ins_plus_rem(input [DWIDTH-1:0] a);
       data_i <= a;
       wrreq_i <= 1;
       rdreq_i <= 1;
@@ -193,17 +193,16 @@ module fifo_tb#(
   task solo_elem_op();
     // one elem
     insert(1);
-    ##1
-    remove();
     ##1;
+    remove();
     $display("solo add_remove correct");
+
     
     insert(1);
-    ##1
+    ##1;
     ins_plus_rem(2);
     ##1;
     remove();
-    ##1;
     $display("solo add_add/remove_remove correct");
   endtask
 
@@ -270,19 +269,14 @@ module fifo_tb#(
     $display("almostEmpty_add/remove_toEmpty correct");
   endtask
 
-  task small_random_test();
-    repeat(500) generate_input();
-    $display("small_random_test correct");
-  endtask
-
-  task big_random_test();
-    repeat(10000) generate_input();
-    $display("big_random_test correct");
+  task random_test(int cnt);
+    repeat (cnt) generate_input();
+    $display("random_test correct for %0d iterations", cnt);
   endtask
 
   initial
   begin
-
+    int num_iterations;
     make_srst();
     ##1;
     fork
@@ -292,11 +286,16 @@ module fifo_tb#(
     solo_elem_op();
     to_full_to_empty();
     to_almostFull_to_empty();
-    to_almostEmpty_to_empty();
+    to_almostFull_to_empty();
     ##5;
-    small_random_test();
+    if (!$value$plusargs("NUM_ITERATIONS=%d", num_iterations))
+      begin
+        num_iterations = 500;
+      end
+    $display("iter: %d", num_iterations);
+    random_test(num_iterations);
     ##5;
-    big_random_test();
+    random_test(10000);
     ##5;
     $display("all test succed");
     $stop();

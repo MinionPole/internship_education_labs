@@ -1,12 +1,16 @@
-vlib work
+if {[file exists work]} {
+    # If it exists, delete it
+    file delete -force work
+}
 
+vlib work
 
 vlog -sv ../rtl/fifo.sv
 vlog -sv ../rtl/memory.sv
 vlog -sv fifo_tb.sv
 
 proc runtest {i j} {
-  vsim -L altera_mf -novopt fifo_tb
+  vsim -L altera_mf -novopt +NUM_ITERATIONS=1000 fifo_tb
   add log -r /*
   add wave /fifo_tb/clk
   add wave /fifo_tb/srst
